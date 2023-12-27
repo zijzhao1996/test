@@ -4,7 +4,8 @@ import multiprocessing
 from tqdm import tqdm
 import time
 
-def process_file(file_name, market_data_path, volume_data_path, output_path):
+def process_file(args):
+    file_name, market_data_path, volume_data_path, output_path = args
     try:
         # Read market and volume data CSV files
         market_df = pd.read_csv(os.path.join(market_data_path, file_name))
@@ -29,16 +30,19 @@ def main():
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
-    # List all CSV files in the market data directory
+    # List all CSV files in the market data and volume data directories
     market_files = set(os.listdir(market_data_path))
     volume_files = set(os.listdir(volume_data_path))
     
     # Process only the files that are present in both directories
     common_files = market_files.intersection(volume_files)
 
+    # Create a list of arguments for each file to be processed
+    file_args = [(f, market_data_path, volume_data_path, output_path) for f in common_files]
+
     # Use multiprocessing to process files
     pool = multiprocessing.Pool(multiprocessing.cpu_count())
-    for _ in tqdm(pool.imap_unordered(lambda f: process_file(f, market_data_path, volume_data_path, output_path), common_files), total=len(common_files)):
+    for _ in tqdm(pool.imap_unordered(process_file, file_args), total=len(common_files)):
         pass
 
     pool.close()
@@ -49,7 +53,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
