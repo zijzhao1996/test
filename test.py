@@ -13,13 +13,19 @@ def calculate_forward_return(args):
         # Ensure the dataframe is sorted by ticker and bar_time
         df.sort_values(by=['ticker', 'bar_time'], inplace=True)
 
-        # Shift 'ret', adjust it, and compute the forward return
-        df['adj_ret'] = df.groupby('ticker')['ret'].shift(-1) + 1
+        # Shift 'ret' by one to start from the next interval
+        df['shifted_ret'] = df.groupby('ticker')['ret'].shift(-1)
+
+        # Fill NA values with 0
+        df['shifted_ret'].fillna(0, inplace=True)
+
+        # Adjust 'shifted_ret' and compute the forward return
+        df['adj_ret'] = df['shifted_ret'] + 1
         df['target'] = df.groupby('ticker')['adj_ret'].transform(
             lambda x: x.rolling(6, min_periods=1).apply(lambda y: y.prod(), raw=True).shift(-6)) - 1
 
-        # Remove the 'adj_ret' column as it's no longer needed
-        df.drop(columns=['adj_ret'], inplace=True)
+        # Remove the temporary columns
+        df.drop(columns=['shifted_ret', 'adj_ret'], inplace=True)
 
         # Determine the output file path
         output_file = os.path.join(output_path, os.path.basename(file_path))
