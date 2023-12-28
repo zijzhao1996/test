@@ -1,11 +1,18 @@
-import pandas as pd
+import dask.dataframe as dd
 import os
 
 def obtain_features(path):
-    # Read and concatenate the parquet files
-    all_files = [f for f in os.listdir(path) if f.endswith('.parquet')]
-    df_list = [pd.read_parquet(os.path.join(path, file)) for file in all_files]
-    df = pd.concat(df_list, ignore_index=True)
+    # Define the years of interest
+    YEARS = ['2018', '2019', '2020']
+
+    # Read and concatenate the parquet files for the specified years
+    files = [os.path.join(path, f) for f in os.listdir(path) if f.endswith('.parquet') and any(f.startswith(year) for year in YEARS)]
+    
+    # Use Dask to read the files
+    df = dd.read_parquet(files, engine='pyarrow')
+
+    # Convert to pandas dataframe for rolling operations (if manageable in memory)
+    df = df.compute()
 
     # Ensure the dataframe is sorted by ticker and bar_time
     df.sort_values(by=['ticker', 'bar_time'], inplace=True)
@@ -16,7 +23,6 @@ def obtain_features(path):
 
     # Compute historical returns for each interval
     for interval_name, interval_bars in intervals.items():
-        # Reverse the dataframe, apply rolling, then reverse it back
         df[f'hist_ret_{interval_name}'] = df.groupby('ticker')['ret'].apply(
             lambda x: x.iloc[::-1].rolling(window=interval_bars, min_periods=1).apply(
                 lambda y: (y + 1).prod() - 1, raw=True).iloc[::-1])
@@ -26,3 +32,4 @@ def obtain_features(path):
 # Example usage
 path = '/dat/chbr_group/chbr_scratch/datadump_zijzhao/'
 features_df = obtain_features(path)
+
