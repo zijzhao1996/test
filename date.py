@@ -40,3 +40,27 @@ def get_previous_n_days(target_date, n):
 # Example usage
 previous_days = get_previous_n_days('20090605', 5)
 print(previous_days)
+
+
+
+def get_previous_n_days_inclusive(target_date, n):
+    # Read the sorted dates
+    with open('sorted_dates.txt', 'r') as f:
+        sorted_dates = [datetime.strptime(line.strip(), '%Y%m%d') for line in f]
+
+    # Convert target_date to datetime
+    target_date = datetime.strptime(target_date, '%Y%m%d')
+
+    # Find the target date in the list
+    if target_date in sorted_dates:
+        target_index = sorted_dates.index(target_date)
+        # Get the target date and its previous N-1 days
+        start_index = max(0, target_index - (n - 1))
+        return [date.strftime('%Y%m%d') for date in sorted_dates[start_index:target_index + 1]]
+    else:
+        return []
+
+# Example usage
+previous_days_inclusive = get_previous_n_days_inclusive('20090605', 5)
+print(previous_days_inclusive)
+
