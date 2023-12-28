@@ -1,16 +1,22 @@
 import pandas as pd
 import os
 import concurrent.futures
-from datetime import datetime
 
 def get_previous_n_days_inclusive(target_date, n):
-    # This function returns a list of dates (as strings) for the target date and the previous n days.
-    # Implementation is assumed to be provided.
+    # Implementation assumed to be provided.
     pass
 
-def process_date(target_date, path):
+def process_date(file_path, path):
+    # Extract date from file name
+    target_date = os.path.basename(file_path).split('.')[0]
+
     # Get the dates for the target date and the previous 10 days
     dates_to_load = get_previous_n_days_inclusive(target_date, 10)
+
+    # Check if we have enough data (i.e., at least 10 days including the target date)
+    if len(dates_to_load) < 11:
+        print(f"Not enough data for date: {target_date}. Skipping.")
+        return None
 
     # Filter and read the relevant files
     files_to_read = [os.path.join(path, f"{date}.parquet") for date in dates_to_load if os.path.exists(os.path.join(path, f"{date}.parquet"))]
@@ -32,22 +38,19 @@ def process_date(target_date, path):
     print(f"Processed data for date: {target_date}")
     return df
 
-def obtain_features(path, start_date, end_date):
-    # Generate a list of dates to process
-    date_range = pd.date_range(start=start_date, end=end_date, freq='D')
-    date_strings = [date.strftime('%Y%m%d') for date in date_range]
+def obtain_features(path):
+    # Get a list of all parquet files in the directory
+    files = [os.path.join(path, f) for f in os.listdir(path) if f.endswith('.parquet')]
 
-    # Process each date in parallel using multiprocessing
+    # Process each file in parallel using multiprocessing
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        results = executor.map(lambda date: process_date(date, path), date_strings)
+        results = executor.map(lambda file: process_date(file, path), files)
 
-    # Concatenate all dataframes
-    combined_df = pd.concat(results, ignore_index=True)
+    # Filter out None results and concatenate all dataframes
+    combined_df = pd.concat([df for df in results if df is not None], ignore_index=True)
 
     return combined_df
 
 # Example usage
 path = '/dat/chbr_group/chbr_scratch/datadump_zijzhao/'
-start_date = '20180601'
-end_date = '20180630'
-features_df = obtain_features(path, start_date, end_date)
+features_df = obtain_features(path)
