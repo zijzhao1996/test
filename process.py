@@ -308,3 +308,61 @@ def load_temp_data(years, temp_dir="temp_data", save_dir="combined_data"):
 # Example usage:
 # TRAIN_YEARS = ['2008', '2009']
 # train_features, train_targets = load_temp_data(TRAIN_YEARS)
+
+
+
+
+
+import os
+import pickle
+import torch
+
+def save_combined_dataset(features, targets, file_path):
+    torch.save((features, targets), file_path)
+
+def load_combined_dataset(file_path):
+    return torch.load(file_path)
+
+def combined_dataset_file_path(years, save_dir="combined_data"):
+    years_str = '_'.join(years)
+    return os.path.join(save_dir, f"combined_dataset_{years_str}.pt")
+
+def load_temp_data(years, temp_dir="temp_data", save_dir="combined_data"):
+    all_features = []
+    all_targets = []
+
+    combined_file_path = combined_dataset_file_path(years, save_dir)
+
+    # Check if the combined dataset for the years already exists
+    if os.path.exists(combined_file_path):
+        print(f"Loading combined dataset from {combined_file_path}")
+        features_tensor, targets_tensor = load_combined_dataset(combined_file_path)
+        return features_tensor, targets_tensor
+
+    for year in years:
+        year_temp_dir = os.path.join(temp_dir, year)
+        file_names = [f for f in os.listdir(year_temp_dir) if f.endswith('.pkl')]
+
+        for file_name in file_names:
+            file_path = os.path.join(year_temp_dir, file_name)
+            with open(file_path, 'rb') as f:
+                ticker_features, ticker_targets = pickle.load(f)
+            all_features.extend(ticker_features)
+            all_targets.extend(ticker_targets)
+            os.remove(file_path)  # Optionally remove the file after loading
+
+    # Combine and save the dataset
+    combined_features_tensor = torch.stack(all_features)
+    combined_targets_tensor = torch.stack(all_targets).squeeze(1)
+
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    save_combined_dataset(combined_features_tensor, combined_targets_tensor, combined_file_path)
+    print(f"Saved combined dataset to {combined_file_path}")
+
+    return combined_features_tensor, combined_targets_tensor
+
+# Example usage:
+# TRAIN_YEARS = ['2008', '2009']
+# train_features, train_targets = load_temp_data(TRAIN_YEARS)
+
