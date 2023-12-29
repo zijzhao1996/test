@@ -366,3 +366,24 @@ def load_temp_data(years, temp_dir="temp_data", save_dir="combined_data"):
 # TRAIN_YEARS = ['2008', '2009']
 # train_features, train_targets = load_temp_data(TRAIN_YEARS)
 
+def process_ticker_data(file_path, ticker, scale, seq_len, year_temp_dir):
+    df = pd.read_parquet(file_path)
+    ticker_df = df[df['ticker'] == ticker]
+    # ... rest of your processing logic ...
+
+def load_and_preprocess(years, scale=10000, seq_len=20, temp_dir="temp_data"):
+    all_features = []
+    all_targets = []
+
+    for year in years:
+        year_temp_dir = os.path.join(temp_dir, year)
+        if not os.path.exists(year_temp_dir):
+            os.makedirs(year_temp_dir)
+
+        file_path = f'{year}_data.parquet'
+        df = pd.read_parquet(file_path)
+        tickers = df['ticker'].unique()
+
+        with mp.Pool(mp.cpu_count()) as pool:
+            func = partial(process_ticker_data, file_path, scale=scale, seq_len=seq_len, year_temp_dir=year_temp_dir)
+            pool.map(func, tickers)
