@@ -246,3 +246,65 @@ def load_temp_data(year_temp_dir):
 # year_temp_dir = "temp_data/2008"
 # features_tensor, targets_tensor = load_temp_data(year_temp_dir)
 
+
+
+
+
+
+import os
+import pickle
+import torch
+
+def save_combined_dataset(features, targets, file_path):
+    torch.save((features, targets), file_path)
+
+def load_combined_dataset(file_path):
+    return torch.load(file_path)
+
+def combined_dataset_file_path(year, save_dir="combined_data"):
+    return os.path.join(save_dir, f"combined_dataset_{year}.pt")
+
+def load_temp_data(years, temp_dir="temp_data", save_dir="combined_data"):
+    all_features = []
+    all_targets = []
+
+    for year in years:
+        year_combined_file = combined_dataset_file_path(year, save_dir)
+        
+        # Check if the combined dataset for the year already exists
+        if os.path.exists(year_combined_file):
+            print(f"Loading combined dataset for year {year} from {year_combined_file}")
+            features_tensor, targets_tensor = load_combined_dataset(year_combined_file)
+        else:
+            print(f"Processing temporary data for year {year}...")
+            year_temp_dir = os.path.join(temp_dir, year)
+            file_names = [f for f in os.listdir(year_temp_dir) if f.endswith('.pkl')]
+
+            year_features = []
+            year_targets = []
+
+            for file_name in file_names:
+                file_path = os.path.join(year_temp_dir, file_name)
+                with open(file_path, 'rb') as f:
+                    ticker_features, ticker_targets = pickle.load(f)
+                year_features.extend(ticker_features)
+                year_targets.extend(ticker_targets)
+                os.remove(file_path)  # Optionally remove the file after loading
+
+            features_tensor = torch.stack(year_features)
+            targets_tensor = torch.stack(year_targets).squeeze(1)
+            
+            # Save the combined dataset for the year
+            if not os.path.exists(save_dir):
+                os.makedirs(save_dir)
+            save_combined_dataset(features_tensor, targets_tensor, year_combined_file)
+            print(f"Saved combined dataset for year {year} to {year_combined_file}")
+
+        all_features.append(features_tensor)
+        all_targets.append(targets_tensor)
+
+    return torch.cat(all_features, dim=0), torch.cat(all_targets, dim=0)
+
+# Example usage:
+# TRAIN_YEARS = ['2008', '2009']
+# train_features, train_targets = load_temp_data(TRAIN_YEARS)
