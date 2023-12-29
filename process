@@ -1,0 +1,51 @@
+# Select the top 500 tickers based on their frequency
+top_500_tickers = df['ticker'].value_counts().head(500).index.tolist()
+
+# Filter for these tickers
+df_filtered = df[df['ticker'].isin(top_500_tickers)]
+
+# Filter for bar_times that end with '000' and are less than or equal to 153000
+df_filtered = df_filtered[df_filtered['bar_time'].astype(str).str.endswith('000') & (df_filtered['bar_time'] <= 153000)]
+
+
+import pandas as pd
+import torch
+from torch.utils.data import DataLoader, TensorDataset
+
+def load_and_preprocess(years, scale=10000, seq_len=20):
+    all_features = []
+    all_targets = []
+
+    for year in years:
+        file_path = f'{year}_data.parquet'
+        df = pd.read_parquet(file_path)
+        tickers = df['ticker'].unique()
+
+        for ticker in tickers:
+            ticker_df = df[df['ticker'] == ticker]
+            nb_obs = len(ticker_df)
+            features = ticker_df[[col for col in ticker_df.columns if col.startswith('hist_return')]] * scale
+            target = ticker_df['target'] * scale
+
+            for i in range(nb_obs - seq_len + 1):
+                X_seq = torch.FloatTensor(features.iloc[i:i + seq_len].values)
+                y_seq = torch.FloatTensor([target.iloc[i + seq_len - 1]])
+                all_features.append(X_seq)
+                all_targets.append(y_seq)
+
+    features_tensor = torch.stack(all_features)
+    targets_tensor = torch.stack(all_targets).squeeze(1)
+
+    return features_tensor, targets_tensor
+
+def create_dataloader(features, targets, batch_size=32, shuffle=True):
+    dataset = TensorDataset(features, targets)
+    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
+
+# Usage
+# TRAIN_YEARS = ['2008', '2009']
+# VALID_YEARS = ['2010']
+# train_features, train_targets = load_and_preprocess(TRAIN_YEARS)
+# val_features, val_targets = load_and_preprocess(VALID_YEARS)
+# train_loader = create_dataloader(train_features, train_targets)
+# val_loader = create_dataloader(val_features, val_targets)
