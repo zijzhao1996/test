@@ -11,6 +11,25 @@ df_filtered = df_filtered[df_filtered['bar_time'].astype(str).str.endswith('000'
 import pandas as pd
 import torch
 from torch.utils.data import DataLoader, TensorDataset
+import multiprocessing as mp
+from functools import partial
+
+def process_ticker_data(df, ticker, scale, seq_len):
+    ticker_df = df[df['ticker'] == ticker]
+    nb_obs = len(ticker_df)
+    features = ticker_df[[col for col in ticker_df.columns if col.startswith('hist_return')]] * scale
+    target = ticker_df['target'] * scale
+
+    ticker_features = []
+    ticker_targets = []
+
+    for i in range(nb_obs - seq_len + 1):
+        X_seq = torch.FloatTensor(features.iloc[i:i + seq_len].values)
+        y_seq = torch.FloatTensor([target.iloc[i + seq_len - 1]])
+        ticker_features.append(X_seq)
+        ticker_targets.append(y_seq)
+
+    return ticker_features, ticker_targets
 
 def load_and_preprocess(years, scale=10000, seq_len=20):
     all_features = []
@@ -21,17 +40,13 @@ def load_and_preprocess(years, scale=10000, seq_len=20):
         df = pd.read_parquet(file_path)
         tickers = df['ticker'].unique()
 
-        for ticker in tickers:
-            ticker_df = df[df['ticker'] == ticker]
-            nb_obs = len(ticker_df)
-            features = ticker_df[[col for col in ticker_df.columns if col.startswith('hist_return')]] * scale
-            target = ticker_df['target'] * scale
+        with mp.Pool(mp.cpu_count()) as pool:
+            func = partial(process_ticker_data, df, scale=scale, seq_len=seq_len)
+            results = pool.map(func, tickers)
 
-            for i in range(nb_obs - seq_len + 1):
-                X_seq = torch.FloatTensor(features.iloc[i:i + seq_len].values)
-                y_seq = torch.FloatTensor([target.iloc[i + seq_len - 1]])
-                all_features.append(X_seq)
-                all_targets.append(y_seq)
+        for ticker_features, ticker_targets in results:
+            all_features.extend(ticker_features)
+            all_targets.extend(ticker_targets)
 
     features_tensor = torch.stack(all_features)
     targets_tensor = torch.stack(all_targets).squeeze(1)
@@ -42,10 +57,11 @@ def create_dataloader(features, targets, batch_size=32, shuffle=True):
     dataset = TensorDataset(features, targets)
     return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
 
-# Usage
+# Usage example
 # TRAIN_YEARS = ['2008', '2009']
 # VALID_YEARS = ['2010']
 # train_features, train_targets = load_and_preprocess(TRAIN_YEARS)
 # val_features, val_targets = load_and_preprocess(VALID_YEARS)
 # train_loader = create_dataloader(train_features, train_targets)
 # val_loader = create_dataloader(val_features, val_targets)
+
