@@ -215,3 +215,34 @@ def create_dataloader(features, targets, batch_size=32, shuffle=True):
 # val_loader = create_dataloader(val_features, val_targets)
 
 
+
+
+
+
+import os
+import pickle
+import torch
+
+def load_temp_data(year_temp_dir):
+    all_features = []
+    all_targets = []
+    tickers = [f.split('.')[0] for f in os.listdir(year_temp_dir) if f.endswith('.pkl')]
+
+    for ticker in tickers:
+        file_path = os.path.join(year_temp_dir, f"{ticker}.pkl")
+        with open(file_path, 'rb') as f:
+            ticker_features, ticker_targets = pickle.load(f)
+            all_features.extend(ticker_features)
+            all_targets.extend(ticker_targets)
+        os.remove(file_path)  # Optionally remove the file after loading
+
+    features_tensor = torch.stack(all_features)
+    targets_tensor = torch.stack(all_targets).squeeze(1)
+
+    return features_tensor, targets_tensor
+
+# Now you can call load_temp_data independently
+# Example:
+# year_temp_dir = "temp_data/2008"
+# features_tensor, targets_tensor = load_temp_data(year_temp_dir)
+
