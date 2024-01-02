@@ -51,5 +51,6 @@ for interval_name, interval_bars in intervals.items():
     # We reverse the DataFrame order for rolling backward
     df[f'hist_ret_{interval_name}'] = df.groupby('ticker')['ret'].apply(
         lambda x: x.iloc[::-1].rolling(window=interval_bars, min_periods=1).apply(
-            lambda y: ((y + 1).cumprod().iloc[-1]) - 1, raw=True).iloc[::-1])
+            lambda y: ((y + 1).cumprod()[-1]) - 1, raw=True).iloc[::-1])
+
 
