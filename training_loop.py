@@ -50,3 +50,39 @@ for epoch in range(num_epochs):
     print(f"Epoch {epoch + 1}/{num_epochs}, Train Loss: {train_losses[-1]:.4f}, Train IC: {train_ic:.4f}, Val Loss: {val_losses[-1]:.4f}, Val IC: {val_ic:.4f}")
 
 # ... Rest of the plotting code remains the same
+
+
+
+
+
+import torch
+from torch.utils.data import Dataset, DataLoader
+
+class FinancialDataset(Dataset):
+    def __init__(self, dataframe):
+        self.dataframe = dataframe
+
+        # Extract features and labels
+        self.features = self.dataframe.filter(like='hist_ret').values
+        self.labels = self.dataframe['target'].values
+
+    def __len__(self):
+        return len(self.dataframe)
+
+    def __getitem__(self, idx):
+        # Convert to tensors
+        features = torch.tensor(self.features[idx], dtype=torch.float32)
+        label = torch.tensor(self.labels[idx], dtype=torch.float32)
+        return features, label
+
+# Create datasets
+train_dataset = FinancialDataset(train_df)
+valid_dataset = FinancialDataset(valid_df)
+
+# Create dataloaders
+batch_size = 64  # You can modify the batch size as needed
+train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+valid_dataloader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=False)
+
+# Now train_dataloader and valid_dataloader can be used in your training loop
+
