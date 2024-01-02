@@ -191,3 +191,37 @@ class FinancialDataset(Dataset):
         features = torch.tensor(self.features[idx], dtype=torch.float32)
         label = torch.tensor(self.labels[idx], dtype=torch.float32)
         return features, label
+
+
+
+
+
+import matplotlib.pyplot as plt
+
+# Assuming train_losses, val_losses, train_ics, and val_ics are lists collected during training
+
+epochs = range(1, len(train_losses) + 1)
+
+# Plotting training and validation loss
+plt.figure(figsize=(12, 5))
+
+plt.subplot(1, 2, 1)
+plt.plot(epochs, train_losses, label='Training Loss')
+plt.plot(epochs, val_losses, label='Validation Loss')
+plt.title('Training and Validation Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
+
+# Plotting training and validation IC
+plt.subplot(1, 2, 2)
+plt.plot(epochs, train_ics, label='Training IC')
+plt.plot(epochs, val_ics, label='Validation IC')
+plt.title('Training and Validation IC')
+plt.xlabel('Epochs')
+plt.ylabel('IC')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
+
