@@ -160,3 +160,34 @@ for epoch in range(num_epochs):
 
 # Plotting or further analysis...
 
+
+
+
+
+
+import torch
+from torch.utils.data import Dataset
+
+class FinancialDataset(Dataset):
+    def __init__(self, dataframe, downsample=False):
+        if downsample:
+            # Select rows where 'bar_time' ends with '000' and target is not None
+            dataframe = dataframe[dataframe['bar_time'].astype(str).str.endswith('000') & dataframe['target'].notna()]
+        else:
+            # Filter out rows where target is None
+            dataframe = dataframe[dataframe['target'].notna()]
+
+        self.dataframe = dataframe
+
+        # Extract features and labels
+        self.features = self.dataframe.filter(like='hist_ret').values
+        self.labels = self.dataframe['target'].values
+
+    def __len__(self):
+        return len(self.dataframe)
+
+    def __getitem__(self, idx):
+        # Convert to tensors
+        features = torch.tensor(self.features[idx], dtype=torch.float32)
+        label = torch.tensor(self.labels[idx], dtype=torch.float32)
+        return features, label
