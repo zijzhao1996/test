@@ -387,3 +387,50 @@ def load_and_preprocess(years, scale=10000, seq_len=20, temp_dir="temp_data"):
         with mp.Pool(mp.cpu_count()) as pool:
             func = partial(process_ticker_data, file_path, scale=scale, seq_len=seq_len, year_temp_dir=year_temp_dir)
             pool.map(func, tickers)
+
+
+
+
+
+
+
+
+import torch
+from torch.utils.data import Dataset
+
+class FinancialDataset(Dataset):
+    def __init__(self, features_tensor, targets_tensor):
+        """
+        Initializes the dataset with features and targets tensors.
+        Args:
+            features_tensor (torch.Tensor): The tensor containing features.
+            targets_tensor (torch.Tensor): The tensor containing targets.
+        """
+        self.features = features_tensor
+        self.labels = targets_tensor
+
+    def __len__(self):
+        return len(self.features)
+
+    def __getitem__(self, idx):
+        """
+        Returns a single data sample at given index.
+        Args:
+            idx (int): The index of the sample to return.
+        Returns:
+            tuple: (feature, label) tensors.
+        """
+        features = self.features[idx]
+        label = self.labels[idx]
+        return features, label
+
+# Usage example
+# Load data using load_temp_data function
+year_temp_dir = "temp_data/2008"
+features_tensor, targets_tensor = load_temp_data(year_temp_dir)
+
+# Create the dataset
+financial_dataset = FinancialDataset(features_tensor, targets_tensor)
+
+# Now you can use financial_dataset with a DataLoader, for example
+# train_loader = DataLoader(financial_dataset, batch_size=32, shuffle=True)
