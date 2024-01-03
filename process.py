@@ -395,6 +395,10 @@ def load_and_preprocess(years, scale=10000, seq_len=20, temp_dir="temp_data"):
 
 
 
+import os
+import pickle
+import torch
+
 def load_temp_data(year, base_temp_dir='/dat/chbr_group/chbr_scratch/temp_data', save_dir='processed_data'):
     year_temp_dir = os.path.join(base_temp_dir, year)
     all_features = []
@@ -413,8 +417,20 @@ def load_temp_data(year, base_temp_dir='/dat/chbr_group/chbr_scratch/temp_data',
     targets_tensor = torch.stack(all_targets).squeeze(1)
 
     # Save the processed tensors
-    feature_file, target_file = save_tensors(features_tensor, targets_tensor, save_dir, year)
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    feature_file = os.path.join(save_dir, f'features_{year}.pt')
+    target_file = os.path.join(save_dir, f'targets_{year}.pt')
+    torch.save(features_tensor, feature_file)
+    torch.save(targets_tensor, target_file)
+
     return feature_file, target_file
+
+# Example usage:
+# feature_file, target_file = load_temp_data('2008')
+# dataset = SeqDataset(feature_file, target_file)
+# train_loader = DataLoader(dataset, batch_size=32, shuffle=True)
+
 
 
 class SeqDataset(Dataset):
