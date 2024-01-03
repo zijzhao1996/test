@@ -395,42 +395,56 @@ def load_and_preprocess(years, scale=10000, seq_len=20, temp_dir="temp_data"):
 
 
 
+import os
+import pickle
 import torch
+
+def save_tensors(features_tensor, targets_tensor, feature_file, target_file):
+    torch.save(features_tensor, feature_file)
+    torch.save(targets_tensor, target_file)
+
+def load_temp_data(year_temp_dir, save_dir='processed_data'):
+    all_features = []
+    all_targets = []
+    tickers = [f for f in os.listdir(year_temp_dir) if f.endswith('.pkl')]
+
+    for ticker in tickers:
+        file_path = os.path.join(year_temp_dir, ticker)
+        with open(file_path, 'rb') as f:
+            ticker_features, ticker_targets = pickle.load(f)
+            all_features.extend(ticker_features)
+            all_targets.extend(ticker_targets)
+        os.remove(file_path)  # Optionally remove the file after loading
+
+    features_tensor = torch.stack(all_features)
+    targets_tensor = torch.stack(all_targets).squeeze(1)
+
+    # Save the processed tensors
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    feature_file = os.path.join(save_dir, 'features.pt')
+    target_file = os.path.join(save_dir, 'targets.pt')
+    save_tensors(features_tensor, targets_tensor, feature_file, target_file)
+
+    return feature_file, target_file
+
+
 from torch.utils.data import Dataset
 
-class FinancialDataset(Dataset):
-    def __init__(self, features_tensor, targets_tensor):
-        """
-        Initializes the dataset with features and targets tensors.
-        Args:
-            features_tensor (torch.Tensor): The tensor containing features.
-            targets_tensor (torch.Tensor): The tensor containing targets.
-        """
-        self.features = features_tensor
-        self.labels = targets_tensor
+class SeqDataset(Dataset):
+    def __init__(self, feature_file, target_file):
+        self.features = torch.load(feature_file)
+        self.labels = torch.load(target_file)
 
     def __len__(self):
         return len(self.features)
 
     def __getitem__(self, idx):
-        """
-        Returns a single data sample at given index.
-        Args:
-            idx (int): The index of the sample to return.
-        Returns:
-            tuple: (feature, label) tensors.
-        """
-        features = self.features[idx]
-        label = self.labels[idx]
-        return features, label
+        return self.features[idx], self.labels[idx]
 
 # Usage example
-# Load data using load_temp_data function
-year_temp_dir = "temp_data/2008"
-features_tensor, targets_tensor = load_temp_data(year_temp_dir)
+# feature_file, target_file = load_temp_data("temp_data/2008")
+# dataset = SeqDataset(feature_file, target_file)
 
-# Create the dataset
-financial_dataset = FinancialDataset(features_tensor, targets_tensor)
 
-# Now you can use financial_dataset with a DataLoader, for example
-# train_loader = DataLoader(financial_dataset, batch_size=32, shuffle=True)
+
