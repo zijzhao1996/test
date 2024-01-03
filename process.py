@@ -395,15 +395,8 @@ def load_and_preprocess(years, scale=10000, seq_len=20, temp_dir="temp_data"):
 
 
 
-import os
-import pickle
-import torch
-
-def save_tensors(features_tensor, targets_tensor, feature_file, target_file):
-    torch.save(features_tensor, feature_file)
-    torch.save(targets_tensor, target_file)
-
-def load_temp_data(year_temp_dir, save_dir='processed_data'):
+def load_temp_data(year, base_temp_dir='/dat/chbr_group/chbr_scratch/temp_data', save_dir='processed_data'):
+    year_temp_dir = os.path.join(base_temp_dir, year)
     all_features = []
     all_targets = []
     tickers = [f for f in os.listdir(year_temp_dir) if f.endswith('.pkl')]
@@ -420,16 +413,9 @@ def load_temp_data(year_temp_dir, save_dir='processed_data'):
     targets_tensor = torch.stack(all_targets).squeeze(1)
 
     # Save the processed tensors
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
-    feature_file = os.path.join(save_dir, 'features.pt')
-    target_file = os.path.join(save_dir, 'targets.pt')
-    save_tensors(features_tensor, targets_tensor, feature_file, target_file)
-
+    feature_file, target_file = save_tensors(features_tensor, targets_tensor, save_dir, year)
     return feature_file, target_file
 
-
-from torch.utils.data import Dataset
 
 class SeqDataset(Dataset):
     def __init__(self, feature_file, target_file):
@@ -442,9 +428,10 @@ class SeqDataset(Dataset):
     def __getitem__(self, idx):
         return self.features[idx], self.labels[idx]
 
-# Usage example
-# feature_file, target_file = load_temp_data("temp_data/2008")
+# Example usage:
+# feature_file, target_file = load_temp_data('2008')
 # dataset = SeqDataset(feature_file, target_file)
+# train_loader = DataLoader(dataset, batch_size=32, shuffle=True)
 
 
 
