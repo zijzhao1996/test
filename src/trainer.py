@@ -5,7 +5,7 @@ import os
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 from scipy.stats import pearsonr
-from src.model.linear import Linear  # Adjust the import path as necessary
+from src.model.linear import Linear
 
 class Trainer:
     def __init__(self, config_path, log_dir='./logs'):
