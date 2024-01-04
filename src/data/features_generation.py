@@ -4,7 +4,7 @@ from datetime import datetime
 import os
 import multiprocessing
 import logging
-from utils.trading_date_utils import get_previous_n_days_inclusive
+from utils.tradedays import get_previous_n_days
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -28,7 +28,7 @@ def compute_features_single_date(file_path, path):
         # Define the lookback period
         N = 3
         # Get the dates for the target date and the previous N days
-        dates_to_load = get_previous_n_days_inclusive(target_date_str, N, path)
+        dates_to_load = get_previous_n_days(target_date_str, N, path)
 
         # Ensure we have enough data to proceed
         if len(dates_to_load) < N:
