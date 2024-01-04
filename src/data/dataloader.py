@@ -30,7 +30,7 @@ class NoseqDataset(Dataset):
     def __getitem__(self, idx):
         """Fetches the features and label for a given index."""
         features = torch.tensor(self.features[idx], dtype=torch.float32)
-        label = torch.tensor(self.labels[idx], dtype=torch.float32)
+        label = torch.tensor(self.labels[idx], dtype=torch.float32).unsqueeze(-1)  # Shape [1]
         return features, label
 
 def create_dataloader(dataframe, batch_size=32, shuffle=True, scale=1, downsample=False):

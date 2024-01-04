@@ -168,20 +168,21 @@ for epoch in range(num_epochs):
 import torch
 from torch.utils.data import Dataset
 
-class FinancialDataset(Dataset):
-    def __init__(self, dataframe, downsample=False):
-        if downsample:
-            # Select rows where 'bar_time' ends with '000' and target is not None
-            dataframe = dataframe[dataframe['bar_time'].astype(str).str.endswith('000') & dataframe['target'].notna()]
-        else:
-            # Filter out rows where target is None
-            dataframe = dataframe[dataframe['target'].notna()]
-
+class NoseqDataset(Dataset):
+    def __init__(self, dataframe, scale=1, downsample=False):
         self.dataframe = dataframe
+        if downsample:
+            # Select rows where 'bar_time' ends with '0000' (every 10 mins bar time data)
+            self.dataframe = self.dataframe[self.dataframe['bar_time'].astype(str).str.endswith('000')]
+        
+        # Filter out rows where target/features are None
+        selected_cols = ['target'] + [col for col in self.dataframe.columns if col.startswith('hist_ret')]
+        self.dataframe = self.dataframe[selected_cols].dropna()
+        self.dataframe = self.dataframe.reset_index(drop=True)
 
         # Extract features and labels
-        self.features = self.dataframe.filter(like='hist_ret').values
-        self.labels = self.dataframe['target'].values
+        self.features = self.dataframe.filter(like='hist_ret').values * scale
+        self.labels = self.dataframe['target'].values * scale
 
     def __len__(self):
         return len(self.dataframe)

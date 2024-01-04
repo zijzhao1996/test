@@ -1,11 +1,11 @@
 import os
 import pandas as pd
+import argparse
 from src.trainer import Trainer
 from src.data.dataloader import create_dataloader
 
-def main():
+def main(config_path):
     # Load configuration
-    config_path = os.path.join(os.getcwd(), 'config', 'linear_model.yaml')
     trainer = Trainer(config_path)
 
     # Load data
@@ -20,4 +20,8 @@ def main():
     trainer.train(train_dataloader, valid_dataloader)
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description='Train model.')
+    parser.add_argument('-c', '--config', type=str, required=True, help='Path to the configuration YAML file.')
+    args = parser.parse_args()
+
+    main(args.config)
