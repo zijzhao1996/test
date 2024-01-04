@@ -1,6 +1,7 @@
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, TensorDataset
 import pandas as pd
+import os
 
 class NoseqDataset(Dataset):
     def __init__(self, dataframe, scale=1, downsample=False):
@@ -33,12 +34,24 @@ class NoseqDataset(Dataset):
         label = torch.tensor(self.labels[idx], dtype=torch.float32).unsqueeze(-1)  # Shape [1]
         return features, label
 
-def create_dataloader(dataframe, batch_size=32, shuffle=True, scale=1, downsample=False):
+
+def save_dataset(dataset, file_path):
+    """Saves the dataset to a file."""
+    torch.save({'features': dataset.features, 'labels': dataset.labels}, file_path)
+
+def load_dataset(file_path):
+    """Loads the dataset from a file."""
+    data = torch.load(file_path)
+    return TensorDataset(torch.tensor(data['features'], dtype=torch.float32),
+                         torch.tensor(data['labels'], dtype=torch.float32).unsqueeze(-1))
+
+def create_dataloader(dataframe, year, batch_size=32, shuffle=True, scale=1, downsample=False):
     """
     Creates a DataLoader from the given DataFrame.
 
     Args:
     dataframe (pd.DataFrame): Source data.
+    year (str): Year associated with the data.
     batch_size (int): Batch size for the DataLoader.
     shuffle (bool): Whether to shuffle the data.
     scale (float): Scaling factor for the data.
@@ -47,8 +60,17 @@ def create_dataloader(dataframe, batch_size=32, shuffle=True, scale=1, downsampl
     Returns:
     DataLoader: The DataLoader object for the dataset.
     """
-    dataset = NoseqDataset(dataframe, scale=scale, downsample=downsample)
+    dataset_file_path = f'/dat/chbr_group/chbr_scratch/non_seq_dataset/{year}_data.pt'
+
+    # Check if dataset file exists
+    if os.path.exists(dataset_file_path):
+        dataset = load_dataset(dataset_file_path)
+        logging.info(f'File found. Loaded dataset from {dataset_file_path}')
+    else:
+        # Create and save the dataset
+        logging.info(f'Creating dataset for {year}')
+        dataset = NoseqDataset(dataframe, scale=scale, downsample=downsample)
+        save_dataset(dataset, dataset_file_path)
+
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
     return dataloader
-
-# Example usage in train.py would involve creating a DataFrame and then using this function to create a DataLoader.
