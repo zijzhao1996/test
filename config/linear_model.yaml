@@ -1,0 +1,6 @@
+# Configuration for the Linear Model
+model_params:
+  input_dim: 8
+training_params:
+  num_epochs: 1
+  learning_rate: 0.001

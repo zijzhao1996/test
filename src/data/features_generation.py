@@ -115,6 +115,7 @@ if __name__ == "__main__":
     # Example usage of the compute_features function
     input_path = '/dat/chbr_group/chbr_scratch/test_mkt_data_labeled'
     output_path = '/dat/chbr_group/chbr_scratch/non_seqential_data'
-    year = '2019'
-    df = compute_features(year, input_path, output_path)
-    logging.info(df.head())
+    YEARS = ['2008', '2009']
+    for year in YEARS:
+        df = compute_features(year, input_path, output_path)
+        logging.info(f'{year} data process completed.')
