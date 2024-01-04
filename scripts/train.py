@@ -1,8 +1,8 @@
 import os
 import pandas as pd
 import argparse
-from src.trainer import Trainer
-from src.data.dataloader import create_dataloader
+from trfm.trainer import Trainer
+from trfm.data.dataloader import create_dataloader
 
 def main(config_filename):
     # Construct the full path to the configuration file
@@ -16,8 +16,18 @@ def main(config_filename):
     valid_df = pd.read_parquet('/dat/chbr_group/chbr_scratch/non_sequential_data/2009_data.parquet')
 
     # Create DataLoaders
-    train_dataloader = create_dataloader(train_df, batch_size=trainer.config['training_params']['batch_size'], shuffle=True)
-    valid_dataloader = create_dataloader(valid_df, batch_size=trainer.config['training_params']['batch_size'], shuffle=False)
+    train_dataloader = create_dataloader(dataframe=train_df,
+                                        year='2008',
+                                        batch_size=trainer.config['training_params']['batch_size'],
+                                        shuffle=True,
+                                        scale=1e4,
+                                        downsample=True)
+    valid_dataloader = create_dataloader(dataframe=valid_df,
+                                        year='2009',
+                                        batch_size=trainer.config['training_params']['batch_size'],
+                                        shuffle=False,
+                                        scale=1e4,
+                                        downsample=True)
 
     # Train the model
     trainer.train(train_dataloader, valid_dataloader)
