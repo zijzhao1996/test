@@ -2,6 +2,10 @@ import torch
 from torch.utils.data import Dataset, DataLoader, TensorDataset
 import pandas as pd
 import os
+import logging
+
+# Configure basic logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - [%(levelname)s] - %(message)s')
 
 class NoseqDataset(Dataset):
     def __init__(self, dataframe, scale=1, downsample=False):
