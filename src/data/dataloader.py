@@ -64,7 +64,7 @@ def create_dataloader(dataframe, year, batch_size=32, shuffle=True, scale=1, dow
     Returns:
     DataLoader: The DataLoader object for the dataset.
     """
-    dataset_file_path = f'/dat/chbr_group/chbr_scratch/non_seq_dataset/{year}_data.pt'
+    dataset_file_path = f'/dat/chbr_group/chbr_scratch/non_seqential_dataset/{year}_data.pt'
 
     # Check if dataset file exists
     if os.path.exists(dataset_file_path):
@@ -72,7 +72,7 @@ def create_dataloader(dataframe, year, batch_size=32, shuffle=True, scale=1, dow
         logging.info(f'File found. Loaded dataset from {dataset_file_path}')
     else:
         # Create and save the dataset
-        logging.info(f'Creating dataset for {year}')
+        logging.info(f'Creating dataset for year {year}.')
         dataset = NoseqDataset(dataframe, scale=scale, downsample=downsample)
         save_dataset(dataset, dataset_file_path)
 

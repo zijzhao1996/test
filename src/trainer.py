@@ -1,13 +1,17 @@
 import torch
 import yaml
 import logging
+import os
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 from scipy.stats import pearsonr
 from src.model.linear import Linear  # Adjust the import path as necessary
 
 class Trainer:
-    def __init__(self, config_path):
+    def __init__(self, config_path, log_dir='./logs'):
+        # Extract experiment name from config file name
+        experiment_name = os.path.basename(config_path).split('.')[0]
+
         # Load hyperparameters and model configuration
         with open(config_path, 'r') as file:
             self.config = yaml.safe_load(file)
@@ -17,8 +21,8 @@ class Trainer:
         self.criterion = torch.nn.MSELoss()
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.config['training_params']['learning_rate'])
 
-        # Tensorboard writer
-        self.writer = SummaryWriter()
+        # Tensorboard writer with experiment name in the log directory
+        self.writer = SummaryWriter(log_dir=os.path.join(log_dir, experiment_name))
 
         # Set up logging
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -82,5 +86,3 @@ class Trainer:
 
         # Close the Tensorboard writer
         self.writer.close()
-
-# Example usage is demonstrated in the main training script `scripts/train.py`.
