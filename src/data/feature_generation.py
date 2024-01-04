@@ -70,7 +70,7 @@ def compute_features_single_date(file_path, path):
 
 def compute_features(year, input_path, output_path):
     """
-    Compute features for all trading days in a given year.
+    Compute features for all trading days in a given year. Skips processing if the output file already exists.
 
     Args:
     year (str): The year for which to compute features.
@@ -78,8 +78,15 @@ def compute_features(year, input_path, output_path):
     output_path (str): The directory path to save the processed files.
 
     Returns:
-    pd.DataFrame: A DataFrame containing the combined features for all processed days.
+    pd.DataFrame: A DataFrame containing the combined features for all processed days, or None if already processed.
     """
+    output_file = os.path.join(output_path, f"{year}_data.parquet")
+
+    # Check if the output file already exists
+    if os.path.exists(output_file):
+        logging.info(f"Output file {output_file} already exists. Skipping processing.")
+        return pd.read_parquet(output_file)
+
     try:
         # Listing all the relevant files for the given year
         files = [os.path.join(input_path, f) for f in os.listdir(input_path) if f.endswith('.parquet') and f.startswith(year)]
@@ -96,12 +103,13 @@ def compute_features(year, input_path, output_path):
             os.makedirs(output_path)
 
         # Save the combined data to a parquet file
-        combined_df.to_parquet(os.path.join(output_path, f"{year}_data.parquet"))
+        combined_df.to_parquet(output_file)
         return combined_df
 
     except Exception as e:
         logging.error(f"Error in compute_features: {e}")
         return None
+
 
 if __name__ == "__main__":
     # Example usage of the compute_features function
