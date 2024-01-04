@@ -45,24 +45,3 @@ def process_date(file_path, path):
 
 
 
-# Compute historical returns for each interval
-for interval_name, interval_bars in intervals.items():
-    # Apply a lambda function to calculate compounded return for each group
-    # We reverse the DataFrame order for rolling backward
-    df[f'hist_ret_{interval_name}'] = df.groupby('ticker')['ret'].apply(
-        lambda x: x.iloc[::-1].rolling(window=interval_bars, min_periods=1).apply(
-            lambda y: ((y + 1).cumprod()[-1]) - 1, raw=True).iloc[::-1])
-
-
-
-
-# Compute historical returns for each interval
-for interval_name, interval_bars in intervals.items():
-    # Apply the rolling function in a backward-looking manner
-    df[f'hist_ret_{interval_name}'] = df.groupby('ticker')['ret'].apply(
-        lambda x: x.iloc[::-1]  # Reverse the order for backward-looking rolling
-            .rolling(window=interval_bars, min_periods=1)
-            .apply(lambda y: ((y + 1).cumprod()[-1]) - 1, raw=True)
-            .iloc[::-1]  # Reverse the order back to the original
-    )
-
