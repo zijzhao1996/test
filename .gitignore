@@ -1,0 +1,11 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.log
+*.sh
+*.so
+*.pyc
+.rendered*
+.ipynb_checkpoints/
+logs/
+runs/
