@@ -46,7 +46,7 @@ def compute_features_single_date(file_path, path):
 
         # Preparing the DataFrame for feature calculation
         df.reset_index(drop=True, inplace=True)
-        df.sort_values(by=['ticker', 'date'], inplace=True)
+        df.sort_values(by=['ticker', 'date', 'bar_time'], inplace=True)
         df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
 
         # Define time intervals for historical return calculation

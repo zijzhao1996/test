@@ -23,7 +23,9 @@ def dump_seq_data_per_ticker(df, ticker, scale, seq_len, year_temp_dir):
         logging.info(f"File for ticker {ticker} already exists. Skipping processing.")
         return
 
-    ticker_df = df[df['ticker'] == ticker].reset_index(drop=True)
+    ticker_df = df[df['ticker'] == ticker]
+    # Make sure they are sorted by date & bar_time
+    ticker_df = ticker_df.sort_values(['date', 'bar_time']).reset_index(drop=True)
     features = ticker_df.filter(like='hist_ret').values * scale
     target = ticker_df['target'].values * scale
 
@@ -70,15 +72,6 @@ def dump_seq_data(year, scale=1, seq_len=10, temp_dir="/dat/chbr_group/chbr_scra
     with multiprocessing.Pool() as pool:
         pool.starmap(dump_seq_data_per_ticker, [(df, ticker, scale, seq_len, year_temp_dir) for ticker in tickers])
 
-# if __name__ == "__main__":
-#     logging.basicConfig(level=logging.INFO, format='%(asctime)s - [%(levelname)s] - %(message)s')
-#     dump_seq_data('2008', scale=1e4, seq_len=10)
-
-
 if __name__ == "__main__":
-    df = dump_seq_data_per_ticker('/dat/chbr_group/chbr_scratch/non_sequential_data/2008_data.parquet', 
-                             'AAPL', 
-                             1e4, 
-                             10, 
-                             '/dat/chbr_group/chbr_scratch/sequential_data_temp')
-    print(df)
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - [%(levelname)s] - %(message)s')
+    dump_seq_data('2008', scale=1e4, seq_len=10)
