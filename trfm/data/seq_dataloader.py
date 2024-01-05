@@ -4,6 +4,7 @@ import torch
 import pickle
 import multiprocessing
 import logging
+from torch.utils.data import Dataset, DataLoader
 
 def dump_seq_data_per_ticker(df, ticker, scale, seq_len, year_temp_dir):
     """
@@ -74,81 +75,81 @@ def dump_seq_data(year, scale=1, seq_len=10, temp_dir="/dat/chbr_group/chbr_scra
         pool.starmap(dump_seq_data_per_ticker, [(df, ticker, scale, seq_len, year_temp_dir) for ticker in tickers])
 
 
-def load_temp_data(year, 
-                   base_temp_dir='/dat/chbr_group/chbr_scratch/sequential_data_temp', 
-                   save_dir='/dat/chbr_group/chbr_scratch/sequential_data'):
+def load_temp_data(year, base_temp_dir='/dat/chbr_group/chbr_scratch/sequential_data_temp', save_dir='/dat/chbr_group/chbr_scratch/sequential_data'):
     """
-    Load temporary data for a given year, concatenate it, and save as PyTorch tensors.
+    Load temporary sequential data per ticker, concatenate it, and save as a single PyTorch tensor.
 
     Args:
-    year (str): Year for which to load and process data.
-    base_temp_dir (str): Directory containing temporary per-ticker data.
-    save_dir (str): Directory to save concatenated data.
+    year (str): The year for which to process the data.
+    base_temp_dir (str): Directory where the temporary per-ticker data is stored.
+    save_dir (str): Directory where the concatenated data will be saved.
 
     Returns:
-    Tuple[str, str]: Paths to the saved feature and target tensors.
+    str: The file path to the saved concatenated data.
     """
     year_temp_dir = os.path.join(base_temp_dir, year)
     all_features, all_targets = [], []
     tickers = [f for f in os.listdir(year_temp_dir) if f.endswith('.pkl')]
 
+    # Load and concatenate data from each ticker
     for ticker in tickers:
         file_path = os.path.join(year_temp_dir, ticker)
         with open(file_path, 'rb') as f:
             ticker_features, ticker_targets = pickle.load(f)
             all_features.extend(ticker_features)
             all_targets.extend(ticker_targets)
-        logging.info(f"Loaded ticker {ticker}.")
+        logging.info(f"Loaded data for ticker {ticker}.")
 
+    # Convert lists of features and targets to tensors
     features_tensor = torch.stack(all_features)
     targets_tensor = torch.stack(all_targets).squeeze(1)
 
-    # Create the save directory if it doesn't exist
+    # Ensure the save directory exists
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
-    # Save the processed tensors
-    feature_file = os.path.join(save_dir, f'features_{year}.pt')
-    target_file = os.path.join(save_dir, f'targets_{year}.pt')
-    torch.save(features_tensor, feature_file)
-    torch.save(targets_tensor, target_file)
+    # Save the concatenated features and targets
+    dataset_file_path = os.path.join(save_dir, f'{year}_data.pt')
+    torch.save({'features': features_tensor, 'labels': targets_tensor}, dataset_file_path)
 
-    logging.info(f"Concatenated data saved for year {year}")
-    return feature_file, target_file
+    logging.info(f"Concatenated data for year {year} saved at {dataset_file_path}")
+    return dataset_file_path
 
 class SeqDataset(Dataset):
     """
-    PyTorch Dataset class for loading sequential data.
+    PyTorch Dataset class for loading sequential data from pre-processed tensors.
     """
-    def __init__(self, feature_file, target_file):
+    def __init__(self, dataset_file):
         """
-        Initialize the dataset with paths to the feature and target files.
+        Initialize the dataset.
 
         Args:
-        feature_file (str): Path to the feature tensor file.
-        target_file (str): Path to the target tensor file.
+        dataset_file (str): Path to the file containing the pre-processed tensors.
         """
-        self.features = torch.load(feature_file)
-        self.labels = torch.load(target_file)
+        data = torch.load(dataset_file)
+        self.features = data['features']
+        self.labels = data['labels']
 
     def __len__(self):
-        """Returns the total number of samples in the dataset."""
+        """Returns the number of samples in the dataset."""
         return len(self.features)
 
     def __getitem__(self, idx):
-        """Fetches the features and label for a given index."""
+        """Fetches the features and label for the specified index."""
         return self.features[idx], self.labels[idx]
-
-
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     dump_seq_data('2008', scale=1e4, seq_len=10, downsample=True)
-    dump_seq_data('2009', scale=1e4, seq_len=10, downsample=True) #TODO: save different se len and adapt name
+    dump_seq_data('2009', scale=1e4, seq_len=10, downsample=True) #TODO: save different seq len and adapt name
     # Set up logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-    feature_file, target_file = load_temp_data('2008')
-    dataset = SeqDataset(feature_file, target_file)
-    train_loader = DataLoader(dataset, batch_size=32, shuffle=True)
+    dataset_file = load_temp_data('2008')
+    dataset = SeqDataset(dataset_file)
+    train_loader = DataLoader(dataset, batch_size=8192, shuffle=True)
+
+    dataset_file = load_temp_data('2009')
+    dataset = SeqDataset(dataset_file)
+    train_loader = DataLoader(dataset, batch_size=8192, shuffle=True)
