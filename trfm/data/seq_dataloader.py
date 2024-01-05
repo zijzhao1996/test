@@ -24,7 +24,7 @@ def dump_seq_data_per_ticker(df, ticker, scale, seq_len, year_temp_dir):
         return
 
     ticker_df = df[df['ticker'] == ticker].reset_index(drop=True)
-    features = ticker_df.filter(like='hist_return').values * scale
+    features = ticker_df.filter(like='hist_ret').values * scale
     target = ticker_df['target'].values * scale
 
     ticker_features, ticker_targets = [], []

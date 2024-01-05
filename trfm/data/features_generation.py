@@ -102,6 +102,10 @@ def compute_features(year, input_path, output_path):
         if not os.path.exists(output_path):
             os.makedirs(output_path)
 
+        # Sorting the DataFrame by ticker and date
+        combined_df.sort_values(by=['date', 'bar_time', 'ticker'], inplace=True)
+        combined_df.reset_index(drop=True, inplace=True)
+
         # Save the combined data to a parquet file
         combined_df.to_parquet(output_file)
         return combined_df
