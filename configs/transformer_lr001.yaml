@@ -1,0 +1,11 @@
+model_params:
+  d_feat: 8        # Number of features
+  d_model: 8       # Dimension of the model
+  nhead: 4         # Number of heads in the multihead attention models
+  num_layers: 2    # Number of sub-encoder-layers in the encoder
+  dropout: 0.5     # Dropout rate
+
+training_params:
+  num_epochs: 10   # Number of epochs
+  learning_rate: 0.001
+  batch_size: 8192   # Batch size

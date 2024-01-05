@@ -73,11 +73,6 @@ def dump_seq_data(year, scale=1, seq_len=10, temp_dir="/dat/chbr_group/chbr_scra
     with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
         pool.starmap(dump_seq_data_per_ticker, [(df, ticker, scale, seq_len, year_temp_dir) for ticker in tickers])
 
-import os
-import pickle
-import torch
-from torch.utils.data import Dataset
-import logging
 
 def load_temp_data(year, 
                    base_temp_dir='/dat/chbr_group/chbr_scratch/sequential_data_temp', 
@@ -103,6 +98,7 @@ def load_temp_data(year,
             ticker_features, ticker_targets = pickle.load(f)
             all_features.extend(ticker_features)
             all_targets.extend(ticker_targets)
+        logging.info(f"Loaded ticker {ticker}.")
 
     features_tensor = torch.stack(all_features)
     targets_tensor = torch.stack(all_targets).squeeze(1)
