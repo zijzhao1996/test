@@ -5,10 +5,10 @@ import os
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 from scipy.stats import pearsonr
-from src.model.linear import Linear
+from trfm.model.linear import Linear
 
 class Trainer:
-    def __init__(self, config_path, log_dir='./logs'):
+    def __init__(self, config_path, log_dir='../logs'):
         # Extract experiment name from config file name
         experiment_name = os.path.basename(config_path).split('.')[0]
 
