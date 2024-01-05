@@ -79,9 +79,15 @@ class Trainer:
             train_loss, train_ic = self.train_epoch(train_dataloader)
             val_loss, val_ic = self.validate_epoch(valid_dataloader)
 
-            # Log metrics
-            self.writer.add_scalars('Loss', {'Train': train_loss, 'Validation': val_loss}, epoch)
-            self.writer.add_scalars('IC', {'Train': train_ic, 'Validation': val_ic}, epoch)
+            # Log training metrics
+            self.writer.add_scalar('Training Loss', train_loss, epoch)
+            self.writer.add_scalar('Training IC', train_ic, epoch)
+
+            # Log validation metrics
+            self.writer.add_scalar('Validation Loss', val_loss, epoch)
+            self.writer.add_scalar('Validation IC', val_ic, epoch)
+
+            # Log information to the console
             logging.info(f"Epoch {epoch+1}: Train Loss: {train_loss:.4f}, Train IC: {train_ic:.4f}, Val Loss: {val_loss:.4f}, Val IC: {val_ic:.4f}")
 
         # Close the Tensorboard writer

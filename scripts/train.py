@@ -4,10 +4,8 @@ import argparse
 from trfm.trainer import Trainer
 from trfm.data.dataloader import create_dataloader
 
-def main(config_filename):
-    # Construct the full path to the configuration file
-    config_path = os.path.join(os.path.dirname(__file__), '..', 'configs', config_filename)
 
+def main(config_path):
     # Load configuration
     trainer = Trainer(config_path)
 
@@ -34,7 +32,7 @@ def main(config_filename):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train model.')
-    parser.add_argument('-c', '--config', type=str, required=True, help='Filename of the configuration YAML file.')
+    parser.add_argument('-c', '--config', type=str, required=True, help='Path to the configuration YAML file.')
     args = parser.parse_args()
 
     main(args.config)
