@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import argparse
 from trfm.trainer import Trainer
-from trfm.data.dataloader import create_dataloader
+from test.trfm.data.nonseq_dataloader import create_dataloader
 
 
 def main(config_path):
