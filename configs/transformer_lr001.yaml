@@ -1,11 +1,26 @@
+data_params:
+  train_year: '2008'
+  valid_year: '2009'
+
 model_params:
+  name: Transformer
   d_feat: 8        # Number of features
   d_model: 8       # Dimension of the model
   nhead: 4         # Number of heads in the multihead attention models
   num_layers: 2    # Number of sub-encoder-layers in the encoder
   dropout: 0.5     # Dropout rate
 
+loss: MSELoss
+optimizer: Adam
+scheduler:
+  name: StepLR
+  step_size: 10
+  gamma: 0.1
+
 training_params:
-  num_epochs: 10   # Number of epochs
+  num_epochs: 10
   learning_rate: 0.001
-  batch_size: 8192   # Batch size
+  batch_size: 8192
+  gradient_clipping: 1.0
+  early_stopping_patience: 5
+

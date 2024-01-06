@@ -4,7 +4,7 @@ import torch
 import pickle
 import multiprocessing
 import logging
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 
 def dump_seq_data_per_ticker(df, ticker, scale, seq_len, year_temp_dir):
     """
@@ -68,7 +68,7 @@ def dump_seq_data(year, scale=1, seq_len=10, temp_dir="/dat/chbr_group/chbr_scra
     tickers = df['ticker'].unique().tolist()
 
     # Filter out rows where target/features are None
-    selected_cols = ['target'] + [col for col in df.columns if col.startswith('hist_return')]
+    selected_cols = ['target'] + [col for col in df.columns if col.startswith('hist_ret')]
     df.dropna(subset=selected_cols, inplace=True)
 
     with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
@@ -137,19 +137,3 @@ class SeqDataset(Dataset):
     def __getitem__(self, idx):
         """Fetches the features and label for the specified index."""
         return self.features[idx], self.labels[idx]
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-    dump_seq_data('2008', scale=1e4, seq_len=10, downsample=True)
-    dump_seq_data('2009', scale=1e4, seq_len=10, downsample=True) #TODO: save different seq len and adapt name
-    # Set up logging
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-    dataset_file = load_temp_data('2008')
-    dataset = SeqDataset(dataset_file)
-    train_loader = DataLoader(dataset, batch_size=8192, shuffle=True)
-
-    dataset_file = load_temp_data('2009')
-    dataset = SeqDataset(dataset_file)
-    train_loader = DataLoader(dataset, batch_size=8192, shuffle=True)
