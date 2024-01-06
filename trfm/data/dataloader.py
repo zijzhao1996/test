@@ -14,9 +14,9 @@ def load_dataset(file_path):
     """Loads the dataset from a file."""
     data = torch.load(file_path)
     return TensorDataset(torch.tensor(data['features'], dtype=torch.float32),
-                         torch.tensor(data['labels'], dtype=torch.float32).unsqueeze(-1))
+                         torch.tensor(data['labels'], dtype=torch.float32))
 
-def create_dataloader(year, batch_size=32, shuffle=True, scale=1, downsample=False, is_seq=False, is_seq=False, dataframe=None):
+def create_dataloader(year, batch_size=32, shuffle=True, scale=1, downsample=False, is_seq=False, dataframe=None):
     """
     Creates a DataLoader from the given DataFrame.
 
