@@ -51,7 +51,9 @@ class Trainer:
 
         # Initialize the learning rate scheduler if specified in config
         if 'scheduler' in self.config:
-            self.scheduler = get_scheduler(self.optimizer, **self.config['scheduler'])
+            scheduler_config = self.config['scheduler']
+            scheduler_name = scheduler_config.pop('name')  # Extract the name of the scheduler
+            self.scheduler = get_scheduler(self.optimizer, scheduler_name, **scheduler_config)
         else:
             self.scheduler = None
 
