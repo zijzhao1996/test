@@ -14,12 +14,12 @@ def main(config_path):
 
     # Load dataframe based on the type of dataset
     if is_seq:
-        train_df = pd.read_parquet(f'/dat/chbr_group/chbr_scratch/sequential_data/{train_year}_data.parquet')
-        valid_df = pd.read_parquet(f'/dat/chbr_group/chbr_scratch/sequential_data/{valid_year}_data.parquet')
-    else:
         # Handle non-sequential data loading if necessary
         train_df = None
         valid_df = None
+    else:
+        train_df = pd.read_parquet(f'/dat/chbr_group/chbr_scratch/non_sequential_data/{train_year}_data.parquet')
+        valid_df = pd.read_parquet(f'/dat/chbr_group/chbr_scratch/non_sequential_data/{valid_year}_data.parquet')
 
     # Create DataLoaders
     train_dataloader = create_dataloader(year=train_year,
