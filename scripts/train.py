@@ -22,20 +22,23 @@ def main(config_path):
         valid_df = pd.read_parquet(f'/dat/chbr_group/chbr_scratch/non_sequential_data/{valid_year}_data.parquet')
 
     # Create DataLoaders
+    seq_len = trainer.config['data_params']['seq_len'] if is_seq else None
     train_dataloader = create_dataloader(year=train_year,
-                                         batch_size=trainer.config['training_params']['batch_size'],
-                                         shuffle=True,
-                                         scale=1e4,
-                                         downsample=True,
-                                         is_seq=is_seq,
-                                         dataframe=train_df)
+                                        batch_size=trainer.config['training_params']['batch_size'],
+                                        shuffle=True,
+                                        scale=1e4,
+                                        seq_len=seq_len,
+                                        downsample=True,
+                                        is_seq=is_seq,
+                                        dataframe=train_df)
     valid_dataloader = create_dataloader(year=valid_year,
-                                         batch_size=trainer.config['training_params']['batch_size'],
-                                         shuffle=False,
-                                         scale=1e4,
-                                         downsample=True,
-                                         is_seq=is_seq,
-                                         dataframe=valid_df)
+                                        batch_size=trainer.config['training_params']['batch_size'],
+                                        shuffle=False,
+                                        scale=1e4,
+                                        seq_len=seq_len,
+                                        downsample=True,
+                                        is_seq=is_seq,
+                                        dataframe=valid_df)
 
     # Train the model
     trainer.train(train_dataloader, valid_dataloader)

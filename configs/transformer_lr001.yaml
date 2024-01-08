@@ -15,13 +15,13 @@ loss: MSELoss
 optimizer: Adam
 scheduler:
   name: StepLR
-  step_size: 10
+  step_size: 5
   gamma: 0.1
 
 training_params:
   num_epochs: 10
   learning_rate: 0.001
   batch_size: 8192
-  gradient_clipping: 1.0
+  gradient_clipping: 3.0
   early_stopping_patience: 5
 

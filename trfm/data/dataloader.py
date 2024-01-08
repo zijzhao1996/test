@@ -14,9 +14,9 @@ def load_dataset(file_path):
     """Loads the dataset from a file."""
     data = torch.load(file_path)
     return TensorDataset(torch.tensor(data['features'], dtype=torch.float32),
-                         torch.tensor(data['labels'], dtype=torch.float32))
+                        torch.tensor(data['labels'], dtype=torch.float32))
 
-def create_dataloader(year, batch_size=32, shuffle=True, scale=1, downsample=False, is_seq=False, dataframe=None):
+def create_dataloader(year, batch_size=32, shuffle=True, scale=1, seq_len=10, downsample=False, is_seq=False, dataframe=None):
     """
     Creates a DataLoader from the given DataFrame.
 
@@ -36,6 +36,7 @@ def create_dataloader(year, batch_size=32, shuffle=True, scale=1, downsample=Fal
     else:
         dataset_file_path = f'/dat/chbr_group/chbr_scratch/non_sequential_data/{year}_final_dataset.pt'
         assert dataframe is not None, 'Dataframe must be provided for non-sequential data.'
+        assert seq_len is None, 'Sequence length must be None for non-sequential data.'
 
     # Check if dataset file exists
     if os.path.exists(dataset_file_path):
@@ -43,7 +44,7 @@ def create_dataloader(year, batch_size=32, shuffle=True, scale=1, downsample=Fal
         logging.info(f'File found. Loaded dataset from {dataset_file_path}')
     else:
         if is_seq:
-            dump_seq_data(year, scale=scale, downsample=downsample)
+            dump_seq_data(year, scale=scale, seq_len=seq_len, downsample=downsample)
             data_file = load_temp_data(year)
             dataset = SeqDataset(data_file)
             save_dataset(dataset, dataset_file_path)

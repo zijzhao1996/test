@@ -54,7 +54,7 @@ def dump_seq_data(year, scale=1, seq_len=10, temp_dir="/dat/chbr_group/chbr_scra
     temp_dir (str): Temporary directory for processed data.
     downsample (bool): Flag to downsample the data.
     """
-    year_temp_dir = os.path.join(temp_dir, year)
+    year_temp_dir = os.path.join(temp_dir, f"{year}/seq_len_{seq_len}")  # Include seq_len in path
     if not os.path.exists(year_temp_dir):
         os.makedirs(year_temp_dir)
 
@@ -87,7 +87,7 @@ def load_temp_data(year, base_temp_dir='/dat/chbr_group/chbr_scratch/sequential_
     Returns:
     str: The file path to the saved concatenated data.
     """
-    year_temp_dir = os.path.join(base_temp_dir, year)
+    year_temp_dir = os.path.join(base_temp_dir, f"{year}/seq_len_{seq_len}")  # Include seq_len in path
     all_features, all_targets = [], []
     tickers = [f for f in os.listdir(year_temp_dir) if f.endswith('.pkl')]
 
@@ -109,7 +109,7 @@ def load_temp_data(year, base_temp_dir='/dat/chbr_group/chbr_scratch/sequential_
         os.makedirs(save_dir)
 
     # Save the concatenated features and targets
-    dataset_file_path = os.path.join(save_dir, f'{year}_data.pt')
+    dataset_file_path = os.path.join(save_dir, f'{year}_{seq_len}_final_dataset.pt')
     torch.save({'features': features_tensor, 'labels': targets_tensor}, dataset_file_path)
 
     logging.info(f"Concatenated data for year {year} saved at {dataset_file_path}")

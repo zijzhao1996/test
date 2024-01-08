@@ -2,6 +2,7 @@ import torch
 import yaml
 import logging
 import os
+from datetime import datetime
 import importlib
 import random
 import numpy as np
@@ -22,7 +23,7 @@ class Trainer:
         log_dir (str): Directory for Tensorboard logs.
         """
         # Extract experiment name from config file name for logging purposes
-        experiment_name = os.path.basename(config_path).split('.')[0]
+        self.experiment_name = os.path.basename(config_path).split('.')[0]
 
         # Load hyperparameters and model configuration from YAML file
         with open(config_path, 'r') as file:
@@ -43,7 +44,7 @@ class Trainer:
 
         # Tensorboard setup for monitoring training progress
         current_time = datetime.now().strftime('%Y%m%d-%H%M%S')
-        self.writer = SummaryWriter(log_dir=os.path.join(log_dir, experiment_name, current_time))
+        self.writer = SummaryWriter(log_dir=os.path.join(log_dir, self.experiment_name, current_time))
 
         # Configure logging
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - [%(levelname)s] - %(message)s')
@@ -175,6 +176,9 @@ class Trainer:
 
             # Log information to the console
             logging.info(f"Epoch {epoch+1}: Train Loss: {train_loss:.4f}, Train IC: {train_ic:.4f}, Val Loss: {val_loss:.4f}, Val IC: {val_ic:.4f}")
+
+        # Training complete
+        logging.info(f"{self.experiment_name} training complete.")
 
         # Close the Tensorboard writer
         self.writer.close()
