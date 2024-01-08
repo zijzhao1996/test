@@ -14,7 +14,7 @@ class NoseqDataset(Dataset):
         """
         self.dataframe = dataframe
         if downsample:
-            self.dataframe = self.dataframe[self.dataframe['bar_time'].astype(str).str.endswith('000')]
+            self.dataframe = self.dataframe[self.dataframe['bar_time'].astype(str).str.endswith('0000')] #WARNING
 
         selected_cols = ['target'] + [col for col in self.dataframe.columns if col.startswith('hist_ret')]
         self.dataframe = self.dataframe[selected_cols].dropna()

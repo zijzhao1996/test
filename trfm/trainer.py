@@ -29,8 +29,10 @@ class Trainer:
             self.config = yaml.safe_load(file)
 
         # Dynamically load and initialize the model from the configuration
-        model_module = importlib.import_module(f"trfm.model.{self.config['model_params']['name']}")
-        model_class = getattr(model_module, self.config['model_params']['name'])
+        model_name = self.config['model_params']['name']
+        # Convert model name to lowercase for the module
+        model_module = importlib.import_module(f"trfm.model.{model_name.lower()}")
+        model_class = getattr(model_module, model_name)
         self.model = model_class(**{k: v for k, v in self.config['model_params'].items() if k != 'name'})
 
         # Initialize the loss function and optimizer with possible L2 regularization
