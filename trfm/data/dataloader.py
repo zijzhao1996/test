@@ -32,7 +32,7 @@ def create_dataloader(year, batch_size=32, shuffle=True, scale=1, seq_len=10, do
     DataLoader: The DataLoader object for the dataset.
     """
     if is_seq:
-        dataset_file_path = f'/dat/chbr_group/chbr_scratch/sequential_data/{year}_final_dataset.pt'
+        dataset_file_path = f'/dat/chbr_group/chbr_scratch/sequential_data/{year}_{seq_len}_final_dataset.pt'
     else:
         dataset_file_path = f'/dat/chbr_group/chbr_scratch/non_sequential_data/{year}_final_dataset.pt'
         assert dataframe is not None, 'Dataframe must be provided for non-sequential data.'
@@ -44,8 +44,10 @@ def create_dataloader(year, batch_size=32, shuffle=True, scale=1, seq_len=10, do
         logging.info(f'File found. Loaded dataset from {dataset_file_path}')
     else:
         if is_seq:
-            dump_seq_data(year, scale=scale, seq_len=seq_len, downsample=downsample)
-            data_file = load_temp_data(year)
+            data_dir = f'/dat/chbr_group/chbr_scratch/sequential_data_temp/{year}/seq_len_{seq_len}'
+            if not os.path.exists(data_dir):
+                dump_seq_data(year, scale=scale, seq_len=seq_len, downsample=downsample)
+            data_file = load_temp_data(year, seq_len=seq_len)
             dataset = SeqDataset(data_file)
             save_dataset(dataset, dataset_file_path)
         else:
