@@ -64,7 +64,7 @@ def main(input_path, output_path):
     input_path (str): Path to the input directory.
     output_path (str): Path to the output directory.
     """
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - [%(levelname)s] - %(message)s')
     process_files(input_path, output_path)
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ import logging
 from utils.tradedays import get_previous_n_days
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - [%(levelname)s] - %(message)s')
 
 def compute_features_single_date(file_path, path):
     """

@@ -54,7 +54,7 @@ def dump_seq_data(year, scale=1, seq_len=10, temp_dir="/dat/chbr_group/chbr_scra
     temp_dir (str): Temporary directory for processed data.
     downsample (bool): Flag to downsample the data.
     """
-    year_temp_dir = os.path.join(temp_dir, f"{year}/seq_len_{seq_len}")  # Include seq_len in path
+    year_temp_dir = os.path.join(temp_dir, f"{year}/seq{seq_len}")  # Include seq_len in path
     if not os.path.exists(year_temp_dir):
         os.makedirs(year_temp_dir)
 
@@ -89,7 +89,7 @@ def load_temp_data(year, base_temp_dir='/dat/chbr_group/chbr_scratch/sequential_
     Returns:
     str: The file path to the saved concatenated data.
     """
-    year_temp_dir = os.path.join(base_temp_dir, f"{year}/seq_len_{seq_len}")  # Include seq_len in path
+    year_temp_dir = os.path.join(base_temp_dir, f"{year}/seq{seq_len}")  # Include seq_len in path
     all_features, all_targets = [], []
     tickers = [f for f in os.listdir(year_temp_dir) if f.endswith('.pkl')]
 
