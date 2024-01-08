@@ -16,8 +16,7 @@ def save_dataset(dataset, file_path):
 def load_dataset(file_path):
     """Loads the dataset from a file."""
     data = torch.load(file_path)
-    return TensorDataset(torch.tensor(data['features'], dtype=torch.float32),
-                        torch.tensor(data['labels'], dtype=torch.float32))
+    return TensorDataset(data['features'], data['labels'])
 
 def worker_init_fn(worker_id):
     worker_seed = torch.initial_seed() % 2**32

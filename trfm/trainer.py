@@ -80,6 +80,7 @@ class Trainer:
         random.seed(seed_value)
         np.random.seed(seed_value)
         torch.manual_seed(seed_value)
+        torch.cuda.manual_seed(seed_value)
         torch.cuda.manual_seed_all(seed_value)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
@@ -143,13 +144,16 @@ class Trainer:
         return False
 
     def save_checkpoint(self, epoch):
+        # Include the configuration name
+        config_specific_dir = os.path.join(self.checkpoint_dir, self.experiment_name)
+        os.makedirs(config_specific_dir, exist_ok=True)
         if epoch % self.checkpoint_interval == 0:
-            checkpoint_path = os.path.join(self.checkpoint_dir, f'checkpoint_epoch_{epoch}.pt')
+            checkpoint_path = os.path.join(config_specific_dir, f'checkpoint_epoch_{epoch}.pt')
             torch.save(self.model.state_dict(), checkpoint_path)
 
     def train(self, train_dataloader, valid_dataloader):
         """Train the model across all epochs."""
-        self.set_seed()  # Set seed at the start of training
+        self.set_seed(0)  # Set seed at the start of training
         for epoch in range(self.config['training_params']['num_epochs']):
             train_loss, train_ic = self.train_epoch(train_dataloader)
             val_loss, val_ic = self.validate_epoch(valid_dataloader)
@@ -179,6 +183,10 @@ class Trainer:
 
         # Training complete
         logging.info(f"{self.experiment_name} training complete.")
+
+        # Save the final model at the end of training
+        final_model_path = os.path.join(self.checkpoint_dir, self.experiment_name, 'final_model.pt')
+        torch.save(self.model.state_dict(), final_model_path)
 
         # Close the Tensorboard writer
         self.writer.close()
