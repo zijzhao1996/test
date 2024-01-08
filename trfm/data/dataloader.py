@@ -32,9 +32,9 @@ def create_dataloader(year, batch_size=32, shuffle=True, scale=1, downsample=Fal
     DataLoader: The DataLoader object for the dataset.
     """
     if is_seq:
-        dataset_file_path = f'/dat/chbr_group/chbr_scratch/seqential_dataset/{year}_data.pt'
+        dataset_file_path = f'/dat/chbr_group/chbr_scratch/sequential_data/{year}_final_dataset.pt'
     else:
-        dataset_file_path = f'/dat/chbr_group/chbr_scratch/non_seqential_dataset/{year}_data.pt'
+        dataset_file_path = f'/dat/chbr_group/chbr_scratch/non_sequential_data/{year}_final_dataset.pt'
         assert dataframe is not None, 'Dataframe must be provided for non-sequential data.'
 
     # Check if dataset file exists

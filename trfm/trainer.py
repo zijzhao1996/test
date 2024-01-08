@@ -42,7 +42,8 @@ class Trainer:
                                        self.config['training_params']['learning_rate'], weight_decay=weight_decay)
 
         # Tensorboard setup for monitoring training progress
-        self.writer = SummaryWriter(log_dir=os.path.join(log_dir, experiment_name))
+        current_time = datetime.now().strftime('%Y%m%d-%H%M%S')
+        self.writer = SummaryWriter(log_dir=os.path.join(log_dir, experiment_name, current_time))
 
         # Configure logging
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - [%(levelname)s] - %(message)s')
