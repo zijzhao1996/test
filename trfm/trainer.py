@@ -63,9 +63,9 @@ class Trainer:
 
         # Setup for early stopping and model checkpointing
         self.best_val_loss = float('inf')
-        self.patience = self.config.get('early_stopping_patience', 10)
+        self.patience = self.config['training_params'].get('early_stopping_patience', 10)
         self.patience_counter = 0
-        self.checkpoint_interval = self.config.get('checkpoint_interval', 5)
+        self.checkpoint_interval = self.config['training_params'].get('checkpoint_interval', 5)
         self.checkpoint_dir = os.path.join(os.path.dirname(log_dir), 'checkpoints')
         os.makedirs(self.checkpoint_dir, exist_ok=True)
 
@@ -147,16 +147,33 @@ class Trainer:
         # Include the configuration name
         config_specific_dir = os.path.join(self.checkpoint_dir, self.experiment_name)
         os.makedirs(config_specific_dir, exist_ok=True)
-        if epoch % self.checkpoint_interval == 0:
+        if (epoch+1) % self.checkpoint_interval == 0:
             checkpoint_path = os.path.join(config_specific_dir, f'checkpoint_epoch_{epoch}.pt')
             torch.save(self.model.state_dict(), checkpoint_path)
 
-    def train(self, train_dataloader, valid_dataloader):
-        """Train the model across all epochs."""
+    def create_summary_table(self, metrics):
+        """Create a formatted string representing the summary table."""
+        header = "| Metric | Train | Valid | Test |\n|----------|-----------|-----------|-----------|\n"
+        loss_row = f"| Loss | {metrics['Train Loss']:.4f} | {metrics['Valid Loss']:.4f} | {metrics['Test Loss']:.4f} |\n"
+        ic_row = f"| IC | {metrics['Train IC']:.4f} | {metrics['Valid IC']:.4f} | {metrics['Test IC']:.4f} |"
+        return header + loss_row + ic_row
+
+    def train(self, train_dataloader, valid_dataloader, test_dataloader=None):
+        """Train the model across all epochs and perform testing if test_dataloader is provided."""
         self.set_seed(0)  # Set seed at the start of training
+        final_metrics = {'Train Loss': None,
+                        'Train IC': None,
+                        'Valid Loss': None,
+                        'Valid IC': None,
+                        'Test Loss': None,
+                        'Test IC': None}
         for epoch in range(self.config['training_params']['num_epochs']):
             train_loss, train_ic = self.train_epoch(train_dataloader)
             val_loss, val_ic = self.validate_epoch(valid_dataloader)
+
+            # Store the metrics of the last epoch
+            final_metrics['Train Loss'], final_metrics['Train IC'] = train_loss, train_ic
+            final_metrics['Valid Loss'], final_metrics['Valid IC'] = val_loss, val_ic
 
             # Scheduler step
             if self.scheduler:
@@ -181,8 +198,17 @@ class Trainer:
             # Log information to the console
             logging.info(f"Epoch {epoch+1}: Train Loss: {train_loss:.4f}, Train IC: {train_ic:.4f}, Val Loss: {val_loss:.4f}, Val IC: {val_ic:.4f}")
 
+        # Evaluate on test data if provided
+        if test_dataloader is not None:
+            test_loss, test_ic = self.test_epoch(test_dataloader)
+            final_metrics['Test Loss'], final_metrics['Test IC'] = test_loss, test_ic
+
+        # Create and log the summary table
+        summary_table = self.create_summary_table(final_metrics)
+        self.writer.add_text("Summary", summary_table, self.config['training_params']['num_epochs'])
+
         # Training complete
-        logging.info(f"{self.experiment_name} training complete.")
+        logging.info(f"Experiment {self.experiment_name} complete.")
 
         # Save the final model at the end of training
         final_model_path = os.path.join(self.checkpoint_dir, self.experiment_name, 'final_model.pt')

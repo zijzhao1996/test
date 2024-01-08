@@ -10,6 +10,7 @@ def main(config_path):
     # Extract training and validation years from the configuration
     train_year = trainer.config['data_params']['train_year']
     valid_year = trainer.config['data_params']['valid_year']
+    test_year = trainer.config['data_params']['test_year']
     is_seq = trainer.config['data_params']['is_seq']
 
     # Load dataframe based on the type of dataset
@@ -17,9 +18,11 @@ def main(config_path):
         # Handle non-sequential data loading if necessary
         train_df = None
         valid_df = None
+        test_df = None
     else:
         train_df = pd.read_parquet(f'/dat/chbr_group/chbr_scratch/non_sequential_data/{train_year}_data.parquet')
         valid_df = pd.read_parquet(f'/dat/chbr_group/chbr_scratch/non_sequential_data/{valid_year}_data.parquet')
+        test_df = pd.read_parquet(f'/dat/chbr_group/chbr_scratch/non_sequential_data/{test_year}_data.parquet')
 
     # Create DataLoaders
     seq_len = trainer.config['data_params']['seq_len'] if is_seq else None
@@ -39,9 +42,17 @@ def main(config_path):
                                         downsample=True,
                                         is_seq=is_seq,
                                         dataframe=valid_df)
+    test_dataloader = create_dataloader(year=test_year,
+                                        batch_size=trainer.config['training_params']['batch_size'],
+                                        shuffle=False,
+                                        scale=1e4,
+                                        seq_len=seq_len,
+                                        downsample=True,
+                                        is_seq=is_seq,
+                                        dataframe=test_df)
 
     # Train the model
-    trainer.train(train_dataloader, valid_dataloader)
+    trainer.train(train_dataloader, valid_dataloader, test_dataloader)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train model.')
