@@ -75,7 +75,9 @@ def dump_seq_data(year, scale=1, seq_len=10, temp_dir="/dat/chbr_group/chbr_scra
         pool.starmap(dump_seq_data_per_ticker, [(df, ticker, scale, seq_len, year_temp_dir) for ticker in tickers])
 
 
-def load_temp_data(year, base_temp_dir='/dat/chbr_group/chbr_scratch/sequential_data_temp', save_dir='/dat/chbr_group/chbr_scratch/sequential_data'):
+def load_temp_data(year, base_temp_dir='/dat/chbr_group/chbr_scratch/sequential_data_temp',
+                save_dir='/dat/chbr_group/chbr_scratch/sequential_data',
+                seq_len=10):
     """
     Load temporary sequential data per ticker, concatenate it, and save as a single PyTorch tensor.
 
