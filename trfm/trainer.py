@@ -133,6 +133,27 @@ class Trainer:
         ic = pearsonr(targets, predictions)[0]
         return avg_loss, ic
 
+    def test_epoch(self, dataloader):
+        """Evaluate the model on the test set."""
+        self.model.eval()
+        total_loss = 0
+        total_samples = len(dataloader.dataset)
+        predictions, targets = [], []
+
+        with torch.no_grad():
+            for features, target in tqdm(dataloader, desc="Testing", leave=False):
+                features, target = features.to(self.device), target.to(self.device)
+                output = self.model(features)
+                loss = self.criterion(output, target)
+
+                total_loss += loss.item() * features.size(0)
+                predictions.extend(output.detach().cpu().numpy())
+                targets.extend(target.detach().cpu().numpy())
+
+        avg_loss = total_loss / total_samples
+        ic = pearsonr(targets, predictions)[0]
+        return avg_loss, ic
+
     def early_stopping_check(self, val_loss):
         if val_loss < self.best_val_loss:
             self.best_val_loss = val_loss
