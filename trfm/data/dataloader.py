@@ -1,6 +1,9 @@
 import os
 import torch
 import logging
+import random
+import numpy as np
+import multiprocessing
 from torch.utils.data import DataLoader, TensorDataset
 from trfm.data.seq_data_dump import dump_seq_data, load_temp_data, SeqDataset
 from trfm.data.nonseq_data_dump import NoseqDataset
@@ -15,6 +18,11 @@ def load_dataset(file_path):
     data = torch.load(file_path)
     return TensorDataset(torch.tensor(data['features'], dtype=torch.float32),
                         torch.tensor(data['labels'], dtype=torch.float32))
+
+def worker_init_fn(worker_id):
+    worker_seed = torch.initial_seed() % 2**32
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
 
 def create_dataloader(year, batch_size=32, shuffle=True, scale=1, seq_len=10, downsample=False, is_seq=False, dataframe=None):
     """
@@ -56,5 +64,20 @@ def create_dataloader(year, batch_size=32, shuffle=True, scale=1, seq_len=10, do
             dataset = NoseqDataset(dataframe, scale=scale, downsample=downsample)
             save_dataset(dataset, dataset_file_path)
 
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
+    # Use maximum number of workers
+    num_workers = multiprocessing.cpu_count()
+
+    # Setup for reproducible shuffling using torch.Generator
+    g = torch.Generator()
+    g.manual_seed(0)
+
+    # Create the DataLoader
+    dataloader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        num_workers=num_workers,
+        worker_init_fn=worker_init_fn if num_workers > 0 else None,
+        generator=g if shuffle else None
+    )
     return dataloader
