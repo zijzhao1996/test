@@ -16,8 +16,8 @@ def save_dataset(dataset, file_path):
 def load_dataset(file_path):
     """Loads the dataset from a file."""
     data = torch.load(file_path)
-    features_tensor = torch.tensor(data['features'], dtype=torch.float32)
-    labels_tensor = torch.tensor(data['labels'], dtype=torch.float32)
+    features_tensor = data['features'].clone().detach()
+    labels_tensor = data['labels'].clone().detach()
     return TensorDataset(features_tensor, labels_tensor)
 
 def worker_init_fn(worker_id):

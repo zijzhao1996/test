@@ -223,6 +223,7 @@ class Trainer:
         if test_dataloader is not None:
             test_loss, test_ic = self.test_epoch(test_dataloader)
             final_metrics['Test Loss'], final_metrics['Test IC'] = test_loss, test_ic
+            logging.info(f"Test Loss: {test_loss:.4f}, Test IC: {test_ic:.4f}")
 
         # Create and log the summary table
         summary_table = self.create_summary_table(final_metrics)
