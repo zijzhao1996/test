@@ -12,6 +12,7 @@ from scipy.stats import pearsonr
 from .loss import get_loss_function
 from .optim import get_optimizer
 from .scheduler import get_scheduler
+from trfm.data.utils import determine_years
 
 class Trainer:
     def __init__(self, config_path, log_dir='../logs'):
@@ -164,22 +165,24 @@ class Trainer:
                 return True  # Early stopping triggered
         return False
 
-    def save_checkpoint(self, epoch):
-        # Include the configuration name
-        config_specific_dir = os.path.join(self.checkpoint_dir, self.experiment_name)
-        os.makedirs(config_specific_dir, exist_ok=True)
+    def save_checkpoint(self, epoch, test_year):
+        # Save checkpoints in a year-specific subfolder
+        year_specific_dir = os.path.join(self.checkpoint_dir, self.experiment_name, str(test_year))
+        os.makedirs(year_specific_dir, exist_ok=True)
         if (epoch+1) % self.checkpoint_interval == 0:
-            checkpoint_path = os.path.join(config_specific_dir, f'checkpoint_epoch_{epoch}.pt')
+            checkpoint_path = os.path.join(year_specific_dir, f'ckpt_epoch_{epoch}.pt')
             torch.save(self.model.state_dict(), checkpoint_path)
 
-    def create_summary_table(self, metrics):
-        """Create a formatted string representing the summary table."""
-        header = "| Metric | Train | Valid | Test |\n|----------|-----------|-----------|-----------|\n"
+    def create_summary_table(self, metrics, test_year):
+        train_years, valid_years = determine_years(test_year)
+        """Create a formatted string representing the summary table with years in headers."""
+        header = f"| Metric | Train ({train_years}) | Valid ({valid_years}) | Test ({test_year}) |\n"
+        header += "|----------|----------------------|----------------------|----------------------|\n"
         loss_row = f"| Loss | {metrics['Train Loss']:.4f} | {metrics['Valid Loss']:.4f} | {metrics['Test Loss']:.4f} |\n"
         ic_row = f"| IC | {metrics['Train IC']:.4f} | {metrics['Valid IC']:.4f} | {metrics['Test IC']:.4f} |"
         return header + loss_row + ic_row
 
-    def train(self, train_dataloader, valid_dataloader, test_dataloader=None):
+    def train(self, train_dataloader, valid_dataloader, test_dataloader=None, test_year=None):
         """Train the model across all epochs and perform testing if test_dataloader is provided."""
         self.set_seed(0)  # Set seed at the start of training
         final_metrics = {'Train Loss': None,
@@ -206,7 +209,7 @@ class Trainer:
                 break
 
             # Save checkpoint
-            self.save_checkpoint(epoch)
+            self.save_checkpoint(epoch, test_year)
 
             # Log training metrics
             self.writer.add_scalar('Training Loss', train_loss, epoch)
@@ -226,14 +229,16 @@ class Trainer:
             logging.info(f"Test Loss: {test_loss:.4f}, Test IC: {test_ic:.4f}")
 
         # Create and log the summary table
-        summary_table = self.create_summary_table(final_metrics)
+        summary_table = self.create_summary_table(final_metrics, test_year)
         self.writer.add_text("Summary", summary_table, self.config['training_params']['num_epochs'])
 
         # Training complete
         logging.info(f"Experiment {self.experiment_name} complete.")
 
         # Save the final model at the end of training
-        final_model_path = os.path.join(self.checkpoint_dir, self.experiment_name, 'final_model.pt')
+        year_specific_dir = os.path.join(self.checkpoint_dir, self.experiment_name, str(test_year))
+        os.makedirs(year_specific_dir, exist_ok=True)
+        final_model_path = os.path.join(year_specific_dir, 'final_model.pt')
         torch.save(self.model.state_dict(), final_model_path)
 
         # Close the Tensorboard writer
