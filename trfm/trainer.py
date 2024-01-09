@@ -174,9 +174,12 @@ class Trainer:
             torch.save(self.model.state_dict(), checkpoint_path)
 
     def create_summary_table(self, metrics, test_year):
-        train_years, valid_years = determine_years(test_year)
         """Create a formatted string representing the summary table with years in headers."""
-        header = f"| Metric | Train ({train_years}) | Valid ({valid_years}) | Test ({test_year}) |\n"
+        train_years, valid_years = determine_years(test_year)
+        # Convert year lists to comma-separated strings
+        formatted_train_years = ', '.join(map(str, train_years))
+        formatted_valid_years = ', '.join(map(str, valid_years))
+        header = f"| Metric | Train ({formatted_train_years}) | Valid ({formatted_valid_years}) | Test ({test_year}) |\n"
         header += "|----------|----------------------|----------------------|----------------------|\n"
         loss_row = f"| Loss | {metrics['Train Loss']:.4f} | {metrics['Valid Loss']:.4f} | {metrics['Test Loss']:.4f} |\n"
         ic_row = f"| IC | {metrics['Train IC']:.4f} | {metrics['Valid IC']:.4f} | {metrics['Test IC']:.4f} |"

@@ -19,3 +19,4 @@ training_params:
   batch_size: 8192
   gradient_clipping: 3.0
   early_stopping_patience: 5
+  checkpoint_interval: 2
