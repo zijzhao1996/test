@@ -63,12 +63,18 @@ def create_dataloader(years, batch_size=32, shuffle=True, scale=1, seq_len=10, d
                 data_file = load_temp_data(year, seq_len=seq_len)
                 dataset = SeqDataset(data_file)
             else:
-                logging.info(f'Creating dataset for year {year}.')
+                logging.info(f'Processing data for year {year}...')
                 dataset = NoseqDataset(year=year, scale=scale, downsample=downsample)
 
             # Append features and labels to the lists
-            all_features.append(dataset.features)
-            all_labels.append(dataset.labels)
+            print(type(dataset.features))
+            print(type(dataset.labels))
+            features_tensor = torch.tensor(dataset.features, dtype=torch.float32)
+            labels_tensor = torch.tensor(dataset.labels, dtype=torch.float32)
+            print(type(features_tensor))
+            print(type(labels_tensor))
+            all_features.append(features_tensor)
+            all_labels.append(labels_tensor)
             logging.info(f'Loaded data for year {year}.')
 
         # Concatenate all features and labels
@@ -79,6 +85,7 @@ def create_dataloader(years, batch_size=32, shuffle=True, scale=1, seq_len=10, d
         dataset = TensorDataset(concatenated_features, concatenated_labels)
 
         # Save the dataset to a file
+        logging.info(f'Saving dataset for years {years_str}.')
         save_dataset(dataset, dataset_file_path)
 
     # Use maximum number of workers
