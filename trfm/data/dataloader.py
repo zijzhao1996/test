@@ -25,7 +25,7 @@ def worker_init_fn(worker_id):
     np.random.seed(worker_seed)
     random.seed(worker_seed)
 
-def create_dataloader(years, batch_size=32, shuffle=True, scale=1, seq_len=10, downsample=False, is_seq=False, dataframe=None):
+def create_dataloader(years, batch_size=32, shuffle=True, scale=1, seq_len=10, downsample=False, is_seq=False):
     """
     Creates a DataLoader from the given DataFrame for multiple years.
 
@@ -50,27 +50,22 @@ def create_dataloader(years, batch_size=32, shuffle=True, scale=1, seq_len=10, d
     dataset_file_path = os.path.join('/dat/chbr_group/chbr_scratch/', 'sequential_data' if is_seq else 'non_sequential_data', dataset_file_name)
 
     for year in years:
-        # Determine file paths based on whether data is sequential or not
-        if not is_seq:
-            assert dataframe is not None, 'Dataframe must be provided for non-sequential data.'
-            assert seq_len is None, 'Sequence length must be None for non-sequential data.'
-
-        # Load or create dataset for each year
+        # Load dataset for each year
         if os.path.exists(dataset_file_path):
             dataset = load_dataset(dataset_file_path)
             logging.info(f'File found. Loaded dataset from {dataset_file_path}')
         else:
-            # Handle data processing based on sequential or non-sequential data
+            # Create dataset for each year
             if is_seq:
                 data_dir = f'/dat/chbr_group/chbr_scratch/sequential_data_temp/{year}/seq{seq_len}'
                 if not os.path.exists(data_dir):
-                    dump_seq_data(year, scale=scale, seq_len=seq_len, downsample=downsample)
+                    dump_seq_data(year=year, scale=scale, seq_len=seq_len, downsample=downsample)
                 data_file = load_temp_data(year, seq_len=seq_len)
                 dataset = SeqDataset(data_file)
                 save_dataset(dataset, dataset_file_path)
             else:
                 logging.info(f'Creating dataset for year {year}.')
-                dataset = NoseqDataset(dataframe, scale=scale, downsample=downsample)
+                dataset = NoseqDataset(year=year, scale=scale, downsample=downsample)
                 save_dataset(dataset, dataset_file_path)
 
         # Append features and labels to the lists
