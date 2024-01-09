@@ -11,7 +11,9 @@ from trfm.data.nonseq_data_dump import NoseqDataset
 
 def save_dataset(dataset, file_path):
     """Saves the dataset to a file."""
-    torch.save({'features': dataset.features, 'labels': dataset.labels}, file_path)
+    # Extract features and labels from the TensorDataset
+    features, labels = dataset.tensors
+    torch.save({'features': features, 'labels': labels}, file_path)
 
 def load_dataset(file_path):
     """Loads the dataset from a file."""
