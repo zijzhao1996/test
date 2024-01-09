@@ -47,7 +47,7 @@ def create_dataloader(years, batch_size=32, shuffle=True, scale=1, seq_len=10, d
     all_features, all_labels = [], []
 
     # Form the dataset file name based on the years
-    years_str = '_'.join(years)
+    years_str = '_'.join(years) if isinstance(years, list) else years
     dataset_file_name = f'{years_str}_seq{seq_len}_final_dataset.pt' if is_seq else f'{years_str}_final_dataset.pt'
     dataset_file_path = os.path.join('/dat/chbr_group/chbr_scratch/', 'sequential_data' if is_seq else 'non_sequential_data', dataset_file_name)
 
@@ -77,6 +77,8 @@ def create_dataloader(years, batch_size=32, shuffle=True, scale=1, seq_len=10, d
         # Concatenate all features and labels
         concatenated_features = torch.cat(all_features, dim=0)
         concatenated_labels = torch.cat(all_labels, dim=0)
+        print(concatenated_features.shape, concatenated_labels.shape)
+        print(type(concatenated_features), type(concatenated_labels))
 
         # Create a final dataset from concatenated features and labels
         dataset = TensorDataset(concatenated_features, concatenated_labels)
