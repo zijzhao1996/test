@@ -10,8 +10,10 @@ def main(config_path):
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - [%(levelname)s] - %(message)s')
 
     # Extract test year from the configuration
-    test_years = trainer.config['data_params']['test_year']
-    assert isinstance(test_years, list), 'Years must be a list'
+    test_dates = trainer.config['data_params']['test_dates']
+    assert isinstance(test_dates, list), 'Years must be a list'
+    test_years = [test_date[:4] for test_date in test_dates]
+
     is_seq = trainer.config['data_params']['is_seq']
     seq_len = trainer.config['data_params']['seq_len'] if is_seq else None
 

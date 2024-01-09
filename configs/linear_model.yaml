@@ -1,5 +1,5 @@
 data_params:
-  test_year: ['2011', '2012']
+  test_dates: ['20110101', '20120101', '20130101', '20140101']
   is_seq: False
 
 model_params:
