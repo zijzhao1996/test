@@ -49,12 +49,12 @@ def create_dataloader(years, batch_size=32, shuffle=True, scale=1, seq_len=10, d
     dataset_file_name = f'{years_str}_seq{seq_len}_final_dataset.pt' if is_seq else f'{years_str}_final_dataset.pt'
     dataset_file_path = os.path.join('/dat/chbr_group/chbr_scratch/', 'sequential_data' if is_seq else 'non_sequential_data', dataset_file_name)
 
-    for year in years:
-        # Load dataset for each year
-        if os.path.exists(dataset_file_path):
-            dataset = load_dataset(dataset_file_path)
-            logging.info(f'File found. Loaded dataset from {dataset_file_path}')
-        else:
+    # Load dataset from file if it exists
+    if os.path.exists(dataset_file_path):
+        dataset = load_dataset(dataset_file_path)
+        logging.info(f'File found. Loaded dataset from {dataset_file_path}')
+    else:
+        for year in years:
             # Create dataset for each year
             if is_seq:
                 data_dir = f'/dat/chbr_group/chbr_scratch/sequential_data_temp/{year}/seq{seq_len}'
@@ -62,22 +62,24 @@ def create_dataloader(years, batch_size=32, shuffle=True, scale=1, seq_len=10, d
                     dump_seq_data(year=year, scale=scale, seq_len=seq_len, downsample=downsample)
                 data_file = load_temp_data(year, seq_len=seq_len)
                 dataset = SeqDataset(data_file)
-                save_dataset(dataset, dataset_file_path)
             else:
                 logging.info(f'Creating dataset for year {year}.')
                 dataset = NoseqDataset(year=year, scale=scale, downsample=downsample)
-                save_dataset(dataset, dataset_file_path)
 
-        # Append features and labels to the lists
-        all_features.append(dataset.features)
-        all_labels.append(dataset.labels)
+            # Append features and labels to the lists
+            all_features.append(dataset.features)
+            all_labels.append(dataset.labels)
+            logging.info(f'Loaded data for year {year}.')
 
-    # Concatenate all features and labels
-    concatenated_features = torch.cat(all_features, dim=0)
-    concatenated_labels = torch.cat(all_labels, dim=0)
+        # Concatenate all features and labels
+        concatenated_features = torch.cat(all_features, dim=0)
+        concatenated_labels = torch.cat(all_labels, dim=0)
 
-    # Create a final dataset from concatenated features and labels
-    final_dataset = TensorDataset(concatenated_features, concatenated_labels)
+        # Create a final dataset from concatenated features and labels
+        dataset = TensorDataset(concatenated_features, concatenated_labels)
+
+        # Save the dataset to a file
+        save_dataset(dataset, dataset_file_path)
 
     # Use maximum number of workers
     num_workers = multiprocessing.cpu_count()
@@ -88,7 +90,7 @@ def create_dataloader(years, batch_size=32, shuffle=True, scale=1, seq_len=10, d
 
     # Create the DataLoader
     dataloader = DataLoader(
-        final_dataset,
+        dataset,
         batch_size=batch_size,
         shuffle=shuffle,
         num_workers=num_workers,
