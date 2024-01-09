@@ -179,7 +179,7 @@ class Trainer:
         # Convert year lists to comma-separated strings
         formatted_train_years = ', '.join(map(str, train_years))
         formatted_valid_years = ', '.join(map(str, valid_years))
-        header = f"| Metric | Train ({formatted_train_years}) | Valid ({formatted_valid_years}) | Test ({test_year}) |\n"
+        header = f"| Metric | Train (year {formatted_train_years}) | Valid (year {formatted_valid_years}) | Test (year {test_year}) |\n"
         header += "|----------|----------------------|----------------------|----------------------|\n"
         loss_row = f"| Loss | {metrics['Train Loss']:.4f} | {metrics['Valid Loss']:.4f} | {metrics['Test Loss']:.4f} |\n"
         ic_row = f"| IC | {metrics['Train IC']:.4f} | {metrics['Valid IC']:.4f} | {metrics['Test IC']:.4f} |"

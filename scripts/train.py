@@ -18,7 +18,7 @@ def main(config_path):
     # Determine training and validation years
     for test_year in test_years:
         train_years, valid_years = determine_years(test_year)
-        logging.info(f"Satrt to test on {test_year}...")
+        logging.info(f"Satrt to test on year {test_year}...")
         # Create DataLoaders for training, validation, and testing
         train_dataloader = create_dataloader(years=train_years,
                                             batch_size=trainer.config['training_params']['batch_size'],
