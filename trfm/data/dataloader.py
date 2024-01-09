@@ -47,7 +47,8 @@ def create_dataloader(years, batch_size=32, shuffle=True, scale=1, seq_len=10, d
     all_features, all_labels = [], []
 
     # Form the dataset file name based on the years
-    years_str = '_'.join(years) if isinstance(years, list) else years
+    assert isinstance(years, list), 'Years must be a list'
+    years_str = '_'.join(years)
     dataset_file_name = f'{years_str}_seq{seq_len}_final_dataset.pt' if is_seq else f'{years_str}_final_dataset.pt'
     dataset_file_path = os.path.join('/dat/chbr_group/chbr_scratch/', 'sequential_data' if is_seq else 'non_sequential_data', dataset_file_name)
 

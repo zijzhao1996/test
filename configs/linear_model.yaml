@@ -1,7 +1,7 @@
 data_params:
-  train_year: '2008'
-  valid_year: '2009'
-  test_year: '2010'
+  train_year: ['2008', '2009']
+  valid_year: ['2010']
+  test_year: ['2011']
   is_seq: False
 
 model_params:
