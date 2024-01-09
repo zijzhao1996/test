@@ -23,8 +23,8 @@ class NoseqDataset(Dataset):
         self.dataframe = self.dataframe[selected_cols].dropna()
         self.dataframe = self.dataframe.reset_index(drop=True)
 
-        self.features = self.dataframe.filter(like='hist_ret').values * scale
-        self.labels = self.dataframe['target'].values * scale
+        self.features = torch.tensor(self.dataframe.filter(like='hist_ret').values * scale, dtype=torch.float32)
+        self.labels = torch.tensor(self.dataframe['target'].values * scale, dtype=torch.float32)
 
     def __len__(self):
         """Returns the total number of samples in the dataset."""
@@ -32,6 +32,4 @@ class NoseqDataset(Dataset):
 
     def __getitem__(self, idx):
         """Fetches the features and label for a given index."""
-        features = torch.tensor(self.features[idx], dtype=torch.float32)
-        label = torch.tensor(self.labels[idx], dtype=torch.float32)
-        return features, label
+        return self.features[idx], self.labels[idx]
